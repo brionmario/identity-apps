@@ -18,45 +18,41 @@
 
 import { AlertLevels } from "@wso2is/core/models";
 import { addAlert } from "@wso2is/core/store";
-import { useTranslation } from "react-i18next";
-import { useDispatch } from "react-redux";
-
-const dispatch = useDispatch();
-
-const { t } = useTranslation();
+import { I18n } from "@wso2is/i18n";
+import { store } from "../../../store";
 
 export const handleIDPDeleteError = (error) => {
-    if (error.response && error.response.data && error.response.data.description) {
-        dispatch(addAlert({
+    if (error?.response && error.response.data && error.response.data.description) {
+        store.dispatch(addAlert({
             description: error.response.data.description,
             level: AlertLevels.ERROR,
-            message: t("devPortal:components.idp.notifications.deleteIDP.error.message")
+            message: I18n.instance.t("devPortal:components.idp.notifications.deleteIDP.error.message")
         }));
 
         return;
     }
 
-    dispatch(addAlert({
-        description: t("devPortal:components.idp.notifications.deleteIDP.genericError.description"),
+    store.dispatch(addAlert({
+        description: I18n.instance.t("devPortal:components.idp.notifications.deleteIDP.genericError.description"),
         level: AlertLevels.ERROR,
-        message: t("devPortal:components.idp.notifications.deleteIDP.genericError.message")
+        message: I18n.instance.t("devPortal:components.idp.notifications.deleteIDP.genericError.message")
     }));
 };
 
 export const handleIDPUpdateError = (error) => {
-    if (error.response && error.response.data && error.response.data.description) {
-        dispatch(addAlert({
-            description: t("devPortal:components.idp.notifications.updateIDP.error.description"),
+    if (error?.response && error.response.data && error.response.data.description) {
+        store.dispatch(addAlert({
+            description: I18n.instance.t("devPortal:components.idp.notifications.updateIDP.error.description"),
             level: AlertLevels.ERROR,
-            message: t("devPortal:components.idp.notifications.updateIDP.error.message")
+            message: I18n.instance.t("devPortal:components.idp.notifications.updateIDP.error.message")
         }));
 
         return;
     }
 
-    dispatch(addAlert({
-        description: t("devPortal:components.idp.notifications.updateIDP.genericError.description"),
+    store.dispatch(addAlert({
+        description: I18n.instance.t("devPortal:components.idp.notifications.updateIDP.genericError.description"),
         level: AlertLevels.ERROR,
-        message: t("devPortal:components.idp.notifications.updateIDP.genericError.message")
+        message: I18n.instance.t("devPortal:components.idp.notifications.updateIDP.genericError.message")
     }));
 };
