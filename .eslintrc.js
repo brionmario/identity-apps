@@ -8,7 +8,10 @@ module.exports = {
         ecmaVersion: 9,
         sourceType: "module"
     },
-    plugins: ["import"],
+    plugins: [
+        "import",
+        "react-hooks"
+    ],
     settings: {
         react: {
             version: "detect"
@@ -53,7 +56,9 @@ module.exports = {
         "sort-keys": ["warn", "asc", {"caseSensitive": true, "natural": false, "minKeys": 2}],
         "object-curly-spacing": ["warn", "always"],
         "no-console": "warn",
-        "no-duplicate-imports": "warn"
+        "no-duplicate-imports": "warn",
+        "react-hooks/rules-of-hooks": "error",
+        "react-hooks/exhaustive-deps": "warn"
     },
     overrides: [
         {
