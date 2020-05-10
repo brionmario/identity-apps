@@ -26,6 +26,9 @@
         background: @editSegmentBackgroundColor;
         box-shadow: none;
         border: none;
+        border-top: @defaultBorderWidth solid @defaultBorderColor;
+        border-top-right-radius: 0;
+        border-top-left-radius: 0;
 
         &.top-margin {
             margin-top: @editSegmentMarginTop;

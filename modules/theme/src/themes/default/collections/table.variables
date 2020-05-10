@@ -17,7 +17,19 @@
  *
  */
 
- /*******************************
-             table
- *******************************/
+/*******************************
+             Table
+*******************************/
 
+/*-------------------
+       Element
+--------------------*/
+
+@background: lighten(@globalForegroundColor, 10);
+
+/*--------------
+     Parts
+---------------*/
+
+/* Table Header */
+@headerBackground: lighten(@globalForegroundColor, 5);

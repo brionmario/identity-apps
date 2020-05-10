@@ -83,7 +83,7 @@
                 }
             }
             .action-panel {
-                border-top: 1px solid #ccc;
+                border-top: 1px solid @defaultBorderColor;
                 border-color: rgba(0,0,0,.2);
                 padding: 10px 5px;
 
@@ -92,11 +92,9 @@
                 }
 
                 .action-button {
-                    background: #f8f8f8;
-                    border: 1px solid #c6c6c6;
                     line-height: 28px;
                     padding: 6px 20px;
-                    color: #666;
+                    color: @textColor;
 
                     &, &:hover {
                         text-decoration: none;
@@ -141,6 +139,7 @@
 
 .ui.vertical.menu {
     &.side-panel {
+        background: @globalBackgroundColor;
         // override the box shadow and border in the semantic ui menu component
         box-shadow: none;
         border-radius: 0;
@@ -171,6 +170,8 @@
         }
 
         .side-panel-item {
+            border-radius: @defaultBorderRadius;
+
             .route-name {
                 cursor: pointer;
                 color: @sidePanelDefaultFontColor;
@@ -207,7 +208,7 @@
 
             &.active {
                 // override semantic ui menu item active background color
-                background-color: transparent;
+                background-color: @sidePanelActiveBackground !important;
 
                 .route-name {
                     color: @sidePanelActiveFontColor;
@@ -221,7 +222,8 @@
 
             &:hover {
                 // override semantic ui menu item hover background color
-                background-color: transparent;
+                background-color: @sidePanelHoverBackground;
+                border-radius: @defaultBorderRadius;
 
                 .route-name {
                     color: @sidePanelHoverFontColor;

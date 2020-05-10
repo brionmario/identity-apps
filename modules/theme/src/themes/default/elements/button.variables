@@ -29,6 +29,21 @@
 @fontWeight: 500;
 
 /*-------------------
+      Variations
+--------------------*/
+
+/* Basic */
+@basicTextColor: @offWhite !important;
+@basicHoverTextColor: @white !important;
+@basicFocusTextColor: @white !important;
+@basicDownTextColor: @white !important;
+@basicActiveTextColor: @white !important;
+@basicHoverBackground: transparent;
+@basicDownBackground: transparent;
+@basicFocusBackground: transparent;
+@basicBoxShadow: @basicInvertedBoxShadow !important;
+
+/*-------------------
  Input add on button
 --------------------*/
 

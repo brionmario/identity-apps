@@ -21,6 +21,8 @@
             Menu
 *******************************/
 
+@background: @globalForegroundColor;
+
 /*-------------------
       App Footer
 --------------------*/
@@ -31,9 +33,12 @@
     Side Panel Menu
 --------------------*/
 
-@sidePanelDefaultFontColor: @black;
-@sidePanelActiveFontColor: @primaryColor;
-@sidePanelHoverFontColor: @primaryColor;
+@sidePanelHoverBackground: #303031;
+@sidePanelActiveBackground: rgba(45, 136, 255, 0.1);
+
+@sidePanelDefaultFontColor: @textColor;
+@sidePanelActiveFontColor: @textColor;
+@sidePanelHoverFontColor: @textColor;
 
 @sidePanelChildItemGroupLeftPadding: 15px;
 @sidePanelChildItemPadding: @itemVerticalPadding @itemHorizontalPadding;
@@ -43,3 +48,44 @@
 --------------------*/
 
 @listPaginationMarginRight: 10px;
+
+/*--------------
+    Couplings
+---------------*/
+
+/* Dropdown in Menu */
+@dropdownMenuBoxShadow: 0px 1px 3px 0px rgba(0, 0, 0, 0.08);
+
+@dropdownBackground: @globalForegroundColor;
+
+@dropdownHoveredItemColor: @textColor;
+
+/*--------------
+     States
+---------------*/
+
+/* Hovered Item */
+@hoverItemTextColor: inherit;
+
+/* Active Item */
+@activeItemTextColor: inherit;
+
+/* Active Hovered Item */
+@activeHoverItemColor: inherit;
+
+/*--------------
+     Types
+---------------*/
+
+/* Pointing */
+@secondaryPointingActiveTextColor: @textColor;
+
+/* Tabular */
+@tabularActiveColor: @textColor;
+
+/*--------------
+   Variations
+---------------*/
+
+/* Attached */
+@attachedBorder: @borderWidth solid @defaultBorderColor;

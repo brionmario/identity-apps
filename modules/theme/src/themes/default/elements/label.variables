@@ -16,6 +16,16 @@
  * under the License.
  *
  */
+
+ /*******************************
+              Label
+ *******************************/
+
+ /*-------------------
+        Element
+ --------------------*/
+
+ @backgroundColor: lighten(@globalForegroundColor, 10);
  
 /*******************************
          Filter Label

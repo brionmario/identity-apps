@@ -36,19 +36,29 @@
      Borders
 --------------------*/
 
-@relativeBorderRadius: 3px;
-@absoluteBorderRadius: 3px;
-@defaultBorderRadius: @absoluteBorderRadius;
+@relativeBorderRadius: 8px;
+@absoluteBorderRadius: 8px;
+@defaultBorderRadius : @absoluteBorderRadius;
 
-@defaultBorderWidth: 1px;
-@defaultBorderColor: @borderColor;
+@defaultBorderWidth  : 1px;
+@borderColor         : #3f4042;
+@defaultBorderColor  : @borderColor;
 
 /*-------------------
     Brand Colors
 --------------------*/
 
-@primaryColor        : @orange;
+@primaryColor         : @facebookBlue;
+@globalBackgroundColor: #18191a;
+@globalForegroundColor: #242526;
 
+/*-------------------
+        Page
+--------------------*/
+
+@pageBackground      : @globalBackgroundColor;
+
+@textColor           : #e4e6eb;
 
 /*-------------------
     Site Colors
@@ -71,6 +81,7 @@
 @doveGray         : #666666;
 @dullGreen        : #34a850;
 @paleGray         : #D6D6D6;
+@facebookBlue     : #2d88ff;
 
 /*-------------------
      Image Sizes
@@ -139,3 +150,15 @@
 @defaultCardHoverBoxShadow: 0 2px 8px rgba(0, 0, 0, 0.09);
 @defaultCardTransition: all 0.3s;
 @defaultCardBorder: 1px solid #e8e8e8;
+
+/*--------------
+   Form Input
+---------------*/
+
+@inputBackground        : #3a3b3c;
+
+/*-------------------
+     Neutral Text
+--------------------*/
+
+@mutedTextColor       : darken(@textColor, 10);

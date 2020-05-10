@@ -21,6 +21,14 @@
              Modal
  *******************************/
 
+@background: @globalForegroundColor;
+
+/* Content */
+@contentBackground: @globalForegroundColor;
+
+/* Modal Actions */
+@actionBackground: @globalForegroundColor;
+
 @customModalContentAlignment: center;
 @customModalIconMarginTop: 0.5em;
 @customModalDescriptionMarginTop: 0em 1.5em 0em 1.5em;

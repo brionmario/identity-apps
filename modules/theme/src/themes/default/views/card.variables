@@ -21,12 +21,17 @@
             Card
 *******************************/
 
+@background: @globalForegroundColor;
+@extraBackground: lighten(@background, 3);
+@extraHoverBackground: lighten(@background, 5);
+@metaColor: @textColor;
+
 /*-------------------
     Settings Card
 --------------------*/
 
 @settingsCardBorderColor: @iron;
-@settingsCardBorder: 1px solid @settingsCardBorderColor;
+@settingsCardBorder: none;
 @settingsCardHeaderFontSize: 1.5rem;
 @settingsCardPadding: 2em;
 @settingsCardHeaderPadding: 2em 2em 1.5em;

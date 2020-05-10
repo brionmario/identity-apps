@@ -16,7 +16,9 @@
  * under the License.
  *
  */
- 
+
+ @itemDescriptionColor: lighten(@black, 40);
+
 /*******************************
             List
 *******************************/
