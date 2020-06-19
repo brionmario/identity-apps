@@ -90,6 +90,10 @@ export interface DynamicFieldPropsInterface extends TestableComponentInterface {
      */
     update: (data: KeyValue[]) => void;
     /**
+     * Fired when the field values change.
+     */
+    onChange?: (data: KeyValue[]) => void;
+    /**
      * Make the form read only.
      */
     readOnly?: boolean;
@@ -119,6 +123,7 @@ export const DynamicField: FunctionComponent<DynamicFieldPropsInterface> = (
         requiredField,
         duplicateKeyErrorMsg,
         readOnly,
+        onChange,
         [ "data-testid" ]: testId
     } = props;
 
@@ -176,6 +181,14 @@ export const DynamicField: FunctionComponent<DynamicFieldPropsInterface> = (
             setUpdateTrigger();
         }
     }, [updateMapIndex]);
+
+    useEffect(() => {
+        if (!fields) {
+            return;
+        }
+
+        onChange(Array.from(fields.values()));
+    }, [ fields ]);
 
     return (
         <>
