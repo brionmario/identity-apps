@@ -19,7 +19,9 @@
 import { getRolesList } from "@wso2is/core/api";
 import { AlertLevels, RoleListInterface, RolesInterface, TestableComponentInterface } from "@wso2is/core/models";
 import { addAlert } from "@wso2is/core/store";
+import { FormState } from "@wso2is/forms";
 import { DynamicField, Heading } from "@wso2is/react-components";
+import _ from "lodash";
 import React, { FunctionComponent, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useDispatch } from "react-redux";
@@ -31,6 +33,11 @@ interface RoleMappingPropsInterface extends TestableComponentInterface {
      *  Trigger submission or not
      */
     submitState: boolean;
+    /**
+     * Callback for form state change.
+     * @param {FormState} state - From state.
+     */
+    onFormStateChange?: (state: FormState) => void;
     /**
      *  function to be called on submission
      * @param roleMappings
@@ -61,6 +68,7 @@ export const RoleMapping: FunctionComponent<RoleMappingPropsInterface> = (
         onSubmit,
         submitState,
         initialMappings,
+        onFormStateChange,
         readOnly,
         [ "data-testid" ]: testId
     } = props;
@@ -163,6 +171,25 @@ export const RoleMapping: FunctionComponent<RoleMappingPropsInterface> = (
                             }
                         } }
                         readOnly={ readOnly }
+                        onChange={ (data) => {
+                            if (data.length > 0) {
+                                const current: RoleMappingInterface[] = data.map(mapping => {
+                                    return {
+                                        applicationRole: mapping.value,
+                                        localRole: mapping.key
+                                    }
+                                });
+                                onFormStateChange({
+                                    dirty: !_.isEqual(initialMappings, current),
+                                    pristine: _.isEqual(initialMappings, current)
+                                });
+                            } else {
+                                onFormStateChange({
+                                    dirty: !_.isEqual(initialMappings, []),
+                                    pristine: _.isEqual(initialMappings, [])
+                                });
+                            }
+                        } }
                         data-testid={ `${ testId }-dynamic-field` }
                     />
                 </Grid.Column>

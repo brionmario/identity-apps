@@ -19,6 +19,7 @@
 import { hasRequiredScopes } from "@wso2is/core/helpers";
 import { AlertLevels, SBACInterface, TestableComponentInterface } from "@wso2is/core/models";
 import { addAlert } from "@wso2is/core/store";
+import { FormState } from "@wso2is/forms";
 import React, { FunctionComponent, ReactElement } from "react";
 import { useTranslation } from "react-i18next";
 import { useDispatch } from "react-redux";
@@ -38,6 +39,11 @@ interface AdvancedSettingsPropsInterface extends SBACInterface<FeatureConfigInte
      * Current advanced configurations.
      */
     advancedConfigurations: AdvancedConfigurationsInterface;
+    /**
+     * Callback for form state change.
+     * @param {FormState} state - From state.
+     */
+    onFormStateChange?: (state: FormState) => void;
     /**
      * Callback to update the application details.
      */
@@ -59,6 +65,7 @@ export const AdvancedSettings: FunctionComponent<AdvancedSettingsPropsInterface>
         appId,
         advancedConfigurations,
         featureConfig,
+        onFormStateChange,
         onUpdate,
         [ "data-testid" ]: testId
     } = props;
@@ -110,6 +117,7 @@ export const AdvancedSettings: FunctionComponent<AdvancedSettingsPropsInterface>
         <div className="advanced-configuration-section">
             <AdvancedConfigurationsForm
                 config={ advancedConfigurations }
+                onFormStateChange={ onFormStateChange }
                 onSubmit={ handleAdvancedConfigFormSubmit }
                 readOnly={
                     !hasRequiredScopes(featureConfig?.applications, featureConfig?.applications?.scopes?.update)

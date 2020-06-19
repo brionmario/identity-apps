@@ -19,7 +19,7 @@
 import { hasRequiredScopes } from "@wso2is/core/helpers";
 import { AlertLevels, SBACInterface, TestableComponentInterface } from "@wso2is/core/models";
 import { addAlert } from "@wso2is/core/store";
-import { Field, Forms } from "@wso2is/forms";
+import { Field, Forms, FormState } from "@wso2is/forms";
 import { Heading, Hint, PrimaryButton } from "@wso2is/react-components";
 import React, { FunctionComponent, ReactElement, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -52,6 +52,11 @@ interface SignOnMethodsPropsInterface extends SBACInterface<FeatureConfigInterfa
      */
     isLoading?: boolean;
     /**
+     * Callback for form state change.
+     * @param {FormState} state - From state.
+     */
+    onFormStateChange?: (state: FormState) => void;
+    /**
      * Callback to update the application details.
      */
     onUpdate: (id: string) => void;
@@ -73,6 +78,7 @@ export const SignOnMethods: FunctionComponent<SignOnMethodsPropsInterface> = (
         authenticationSequence,
         featureConfig,
         isLoading,
+        onFormStateChange,
         onUpdate,
         [ "data-testid" ]: testId
     } = props;
@@ -103,7 +109,7 @@ export const SignOnMethods: FunctionComponent<SignOnMethodsPropsInterface> = (
      */
     useEffect(() => {
         fetchRequestPathAuthenticators();
-    }, [ props ]);
+    }, []);
 
     /**
      * Handles the data loading from a adaptive auth template when it is selected

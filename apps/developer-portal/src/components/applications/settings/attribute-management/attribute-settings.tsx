@@ -27,7 +27,7 @@ import {
     TestableComponentInterface
 } from "@wso2is/core/models";
 import { addAlert } from "@wso2is/core/store";
-import { useTrigger } from "@wso2is/forms";
+import { FormState, useTrigger } from "@wso2is/forms";
 import { ContentLoader } from "@wso2is/react-components";
 import _ from "lodash";
 import React, { FunctionComponent, ReactElement, useEffect, useState } from "react";
@@ -88,6 +88,11 @@ interface AttributeSelectionPropsInterface extends SBACInterface<FeatureConfigIn
      */
     claimConfigurations: ClaimConfigurationInterface;
     /**
+     * Callback for form state change.
+     * @param {FormState} state - From state.
+     */
+    onFormStateChange?: (state: FormState) => void;
+    /**
      * If only OIDC configured for the application.
      */
     onlyOIDCConfigured: boolean;
@@ -128,6 +133,7 @@ export const AttributeSettings: FunctionComponent<AttributeSelectionPropsInterfa
         appId,
         featureConfig,
         claimConfigurations,
+        onFormStateChange,
         onlyOIDCConfigured,
         onUpdate,
         [ "data-testid" ]: testId
@@ -167,6 +173,9 @@ export const AttributeSettings: FunctionComponent<AttributeSelectionPropsInterfa
 
     // Role Mapping.
     const [roleMapping, setRoleMapping] = useState<RoleMappingInterface[]>([]);
+
+    //Other
+    const [ dirtyForms, setDirtyForms ] = useState<string[]>([]);
 
     const getClaims = () => {
         getAllLocalClaims(null)
@@ -620,6 +629,18 @@ export const AttributeSettings: FunctionComponent<AttributeSelectionPropsInterfa
                     readOnly={
                         !hasRequiredScopes(featureConfig?.applications, featureConfig?.applications?.scopes?.update)
                     }
+                    onFormStateChange={ (state: FormState) => {
+                        if (state.pristine && dirtyForms.includes("attributeSettings")) {
+                            setDirtyForms(dirtyForms.filter((form) => form !== "attributeSettings"));
+                        } else if (!state.pristine && !dirtyForms.includes("attributeSettings")) {
+                            setDirtyForms([ ...dirtyForms, "attributeSettings" ]);
+                        }
+
+                        onFormStateChange({
+                            ...state,
+                            pristine: _.isEmpty(dirtyForms)
+                        });
+                    } }
                     data-testid={ `${ testId }-advanced-attribute-settings-form` }
                 />
                 <RoleMapping
@@ -629,6 +650,19 @@ export const AttributeSettings: FunctionComponent<AttributeSelectionPropsInterfa
                     readOnly={
                         !hasRequiredScopes(featureConfig?.applications, featureConfig?.applications?.scopes?.update)
                     }
+                    onFormStateChange={ (state: FormState) => {
+                        console.log("RoleMapping", state.pristine);
+                        if (state.pristine && dirtyForms.includes("roleMapping")) {
+                            setDirtyForms(dirtyForms.filter((form) => form !== "roleMapping"));
+                        } else if (!state.pristine && !dirtyForms.includes("roleMapping")) {
+                            setDirtyForms([ ...dirtyForms, "roleMapping" ]);
+                        }
+
+                        onFormStateChange({
+                            ...state,
+                            pristine: _.isEmpty(dirtyForms)
+                        });
+                    } }
                     data-testid={ `${ testId }-role-mapping` }
                 />
                 {

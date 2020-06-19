@@ -18,6 +18,7 @@
 
 import { AlertLevels, TestableComponentInterface } from "@wso2is/core/models";
 import { addAlert } from "@wso2is/core/store";
+import { FormState } from "@wso2is/forms";
 import { ConfirmationModal, EmptyPlaceholder, Heading, PrimaryButton } from "@wso2is/react-components";
 import React, { FunctionComponent, ReactElement, useEffect, useState } from "react";
 import { Trans, useTranslation } from "react-i18next";
@@ -47,6 +48,11 @@ interface OutboundProvisioningConfigurationPropsInterface extends TestableCompon
      */
     provisioningConfigurations: ProvisioningConfigurationInterface;
     /**
+     * Callback for form state change.
+     * @param {FormState} state - From state.
+     */
+    onFormStateChange?: (state: FormState) => void;
+    /**
      * Callback to update the application details.
      */
     onUpdate: (id: string) => void;
@@ -65,6 +71,7 @@ export const OutboundProvisioningConfiguration: FunctionComponent<OutboundProvis
 
     const {
         application,
+        onFormStateChange,
         onUpdate,
         [ "data-testid" ]: testId
     } = props;

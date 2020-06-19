@@ -17,10 +17,10 @@
  */
 
 import { TestableComponentInterface } from "@wso2is/core/models";
-import { Field, Forms } from "@wso2is/forms";
+import { Field, Forms, FormState, useTrigger } from "@wso2is/forms";
 import { ConfirmationModal, CopyInputField, Heading, Hint, URLInput } from "@wso2is/react-components";
 import { FormValidation } from "@wso2is/validation";
-import { isEmpty } from "lodash";
+import _ from "lodash";
 import React, { FunctionComponent, MouseEvent, ReactElement, useEffect, useState } from "react";
 import { Trans, useTranslation } from "react-i18next";
 import { Button, Divider, Form, Grid } from "semantic-ui-react";
@@ -44,6 +44,11 @@ interface InboundOIDCFormPropsInterface extends TestableComponentInterface {
     onApplicationRegenerate: () => void;
     onApplicationRevoke: () => void;
     /**
+     * Callback for form state change.
+     * @param {FormState} state - From state.
+     */
+    onFormStateChange?: (state: FormState) => void;
+    /**
      * Make the form read only.
      */
     readOnly?: boolean;
@@ -66,6 +71,7 @@ export const InboundOIDCForm: FunctionComponent<InboundOIDCFormPropsInterface> =
         onSubmit,
         onApplicationRegenerate,
         onApplicationRevoke,
+        onFormStateChange,
         readOnly,
         [ "data-testid" ]: testId
     } = props;
@@ -77,6 +83,8 @@ export const InboundOIDCForm: FunctionComponent<InboundOIDCFormPropsInterface> =
     const [showURLError, setShowURLError] = useState(false);
     const [showRegenerateConfirmationModal, setShowRegenerateConfirmationModal] = useState<boolean>(false);
     const [showRevokeConfirmationModal, setShowRevokeConfirmationModal] = useState<boolean>(false);
+    const [ originalClientSecret, setOriginalClientSecret ] = useState<string>(undefined);
+    const [ reinitializeTrigger, setReinitializeTrigger ] = useTrigger();
 
     /**
      * Add regexp to multiple callbackUrls and update configs.
@@ -250,16 +258,38 @@ export const InboundOIDCForm: FunctionComponent<InboundOIDCFormPropsInterface> =
         }, [initialValues]
     );
 
+    useEffect(() => {
+        if (!initialValues?.clientSecret) {
+            return;
+        }
+
+        if (!originalClientSecret) {
+            setOriginalClientSecret(initialValues.clientSecret);
+            return;
+        }
+
+        if (initialValues.clientSecret !== originalClientSecret) {
+            setReinitializeTrigger();
+        }
+    }, [ initialValues?.clientSecret ]);
+
     return (
         metadata ?
             (
                 <Forms
                     onSubmit={ (values) => {
-                        if (isEmpty(callBackUrls)) {
+                        if (_.isEmpty(callBackUrls)) {
                             setShowURLError(true);
                         } else {
                             onSubmit(updateConfiguration(values));
                         }
+                    } }
+                    reinitialize={ reinitializeTrigger }
+                    onFormStateChange={ (state: FormState) => {
+                        onFormStateChange({
+                            ...state,
+                            pristine: state.pristine && _.isEqual(initialValues?.callbackURLs, callBackUrls.split(","))
+                        });
                     } }
                 >
                     <Grid>

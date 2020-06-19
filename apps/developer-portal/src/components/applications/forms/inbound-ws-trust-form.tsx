@@ -17,7 +17,7 @@
  */
 
 import { TestableComponentInterface } from "@wso2is/core/models";
-import { Field, Forms } from "@wso2is/forms";
+import { Field, Forms, FormState } from "@wso2is/forms";
 import { Hint } from "@wso2is/react-components";
 import _ from "lodash";
 import React, { FunctionComponent, ReactElement } from "react";
@@ -32,6 +32,11 @@ interface InboundWSTrustFormPropsInterface extends TestableComponentInterface {
     metadata: WSTrustMetaDataInterface;
     initialValues: WSTrustConfigurationInterface;
     onSubmit: (values: any) => void;
+    /**
+     * Callback for form state change.
+     * @param {FormState} state - From state.
+     */
+    onFormStateChange?: (state: FormState) => void;
     /**
      * Make the form read only.
      */
@@ -52,6 +57,7 @@ export const InboundWSTrustForm: FunctionComponent<InboundWSTrustFormPropsInterf
     const {
         metadata,
         initialValues,
+        onFormStateChange,
         onSubmit,
         readOnly,
         [ "data-testid" ]: testId
@@ -95,6 +101,7 @@ export const InboundWSTrustForm: FunctionComponent<InboundWSTrustFormPropsInterf
                     onSubmit={ (values) => {
                         onSubmit(updateConfiguration(values));
                     } }
+                    onFormStateChange={ onFormStateChange }
                 >
                     <Grid>
                         <Grid.Row columns={ 1 }>

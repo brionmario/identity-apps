@@ -20,6 +20,7 @@ import { getUserStoreList } from "@wso2is/core/api";
 import { hasRequiredScopes } from "@wso2is/core/helpers";
 import { AlertLevels, SBACInterface, TestableComponentInterface } from "@wso2is/core/models";
 import { addAlert } from "@wso2is/core/store";
+import { FormState } from "@wso2is/forms";
 import { Heading } from "@wso2is/react-components";
 import React, { FunctionComponent, ReactElement, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -49,6 +50,11 @@ interface InboundProvisioningConfigurationsPropsInterface extends SBACInterface<
      */
     provisioningConfigurations: ProvisioningConfigurationInterface;
     /**
+     * Callback for form state change.
+     * @param {FormState} state - From state.
+     */
+    onFormStateChange?: (state: FormState) => void;
+    /**
      * Callback to update the application details.
      */
     onUpdate: (id: string) => void;
@@ -71,6 +77,7 @@ export const InboundProvisioningConfigurations: FunctionComponent<InboundProvisi
     const {
         appId,
         provisioningConfigurations,
+        onFormStateChange,
         onUpdate,
         featureConfig,
         [ "data-testid" ]: testId
@@ -146,6 +153,7 @@ export const InboundProvisioningConfigurations: FunctionComponent<InboundProvisi
                                         content: (
                                             <ProvisioningConfigurationsForm
                                                 config={ provisioningConfigurations }
+                                                onFormStateChange={ onFormStateChange }
                                                 onSubmit={ handleProvisioningConfigFormSubmit }
                                                 useStoreList={ userStore }
                                                 readOnly={

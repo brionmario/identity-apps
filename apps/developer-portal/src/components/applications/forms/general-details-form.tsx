@@ -18,7 +18,8 @@
 
 import { AlertLevels, DisplayCertificate, TestableComponentInterface } from "@wso2is/core/models";
 import { addAlert } from "@wso2is/core/store";
-import { Field, FormValue, Forms, Validation } from "@wso2is/forms";
+import { CertificateManagementUtils } from "@wso2is/core/utils";
+import { Field, FormValue, Forms, Validation, FormState } from "@wso2is/forms";
 import { Certificate as CertificateDisplay, Heading, Hint, LinkButton } from "@wso2is/react-components";
 import { FormValidation } from "@wso2is/validation";
 import _ from "lodash";
@@ -31,7 +32,6 @@ import {
     CertificateInterface,
     CertificateTypeInterface
 } from "../../../models";
-import { CertificateManagementUtils } from "@wso2is/core/utils";
 
 /**
  * Proptypes for the applications general details form component.
@@ -62,6 +62,11 @@ interface GeneralDetailsFormPopsInterface extends TestableComponentInterface {
      */
     name: string;
     /**
+     * Callback for form state change.
+     * @param {FormState} state - From state.
+     */
+    onFormStateChange?: (state: FormState) => void;
+    /**
      * On submit callback.
      */
     onSubmit: (values: any) => void;
@@ -91,6 +96,7 @@ export const GeneralDetailsForm: FunctionComponent<GeneralDetailsFormPopsInterfa
         name,
         description,
         discoverability,
+        onFormStateChange,
         imageUrl,
         accessUrl,
         onSubmit,
@@ -240,6 +246,7 @@ export const GeneralDetailsForm: FunctionComponent<GeneralDetailsFormPopsInterfa
                 onSubmit(updateConfigurations(values))
             } }
             onChange={ handleFormValuesOnChange }
+            onFormStateChange={ onFormStateChange }
         >
             <Grid>
                 <Grid.Row columns={ 1 }>

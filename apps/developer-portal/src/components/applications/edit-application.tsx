@@ -19,11 +19,13 @@
 import { isFeatureEnabled } from "@wso2is/core/helpers";
 import { AlertLevels, SBACInterface, TestableComponentInterface } from "@wso2is/core/models";
 import { addAlert } from "@wso2is/core/store";
+import { FormState } from "@wso2is/forms";
 import { ContentLoader, ResourceTab } from "@wso2is/react-components";
 import _ from "lodash";
 import React, { FunctionComponent, ReactElement, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useDispatch, useSelector } from "react-redux";
+import { TabProps } from "semantic-ui-react";
 import { InboundProtocolsMeta } from "./meta";
 import {
   AccessConfiguration,
@@ -44,6 +46,7 @@ import {
 } from "../../models";
 import { AppState } from "../../store";
 import { ApplicationManagementUtils } from "../../utils";
+import { EditingResourceNavigationConfirmationModal } from "../shared";
 
 /**
  * Proptypes for the applications edit component.
@@ -103,6 +106,10 @@ export const EditApplication: FunctionComponent<EditApplicationPropsInterface> =
     const [inboundProtocolList, setInboundProtocolList] = useState<string[]>([]);
     const [inboundProtocolConfig, setInboundProtocolConfig] = useState<any>(undefined);
     const [isInboundProtocolsRequestLoading, setInboundProtocolsRequestLoading] = useState<boolean>(false);
+    const [ activeTabIndex, setActiveTabIndex ] = useState<number | string>(0);
+    const [ proposedActiveTabIndex, setProposedActiveTabIndex ] = useState<number | string>(undefined);
+    const [ showUnsavedNavConfirmationModal, setShowUnsavedNavConfirmationModal ] = useState<boolean>(false);
+    const [ isEditingFormPristine, setIsEditingFormPristine ] = useState<boolean>(true);
 
     /**
      * Called on `availableInboundProtocols` prop update.
@@ -215,6 +222,7 @@ export const EditApplication: FunctionComponent<EditApplicationPropsInterface> =
                 imageUrl={ application.imageUrl }
                 name={ application.name }
                 isLoading={ isLoading }
+                onFormStateChange={ (state: FormState) => setIsEditingFormPristine(state.pristine) }
                 onDelete={ onDelete }
                 onUpdate={ onUpdate }
                 featureConfig={ featureConfig }
@@ -231,6 +239,9 @@ export const EditApplication: FunctionComponent<EditApplicationPropsInterface> =
                 appName={ application.name }
                 isLoading={ isLoading }
                 onUpdate={ onUpdate }
+                onFormStateChange={ (state: FormState) => {
+                    setIsEditingFormPristine(state.pristine)
+                } }
                 isInboundProtocolConfigRequestLoading={ isInboundProtocolConfigRequestLoading }
                 inboundProtocolConfig={ inboundProtocolConfig }
                 inboundProtocols={ inboundProtocolList }
@@ -249,6 +260,7 @@ export const EditApplication: FunctionComponent<EditApplicationPropsInterface> =
                 onlyOIDCConfigured={
                     inboundProtocolList.length === 1 && (inboundProtocolList[0] === SupportedAuthProtocolTypes.OIDC)
                 }
+                onFormStateChange={ (state: FormState) => setIsEditingFormPristine(state.pristine) }
                 onUpdate={ onUpdate }
                 data-testid={ `${ testId }-attribute-settings` }
             />
@@ -262,6 +274,7 @@ export const EditApplication: FunctionComponent<EditApplicationPropsInterface> =
                 appId={ application.id }
                 authenticationSequence={ application.authenticationSequence }
                 isLoading={ isLoading }
+                onFormStateChange={ (state: FormState) => setIsEditingFormPristine(state.pristine) }
                 onUpdate={ onUpdate }
                 featureConfig={ featureConfig }
                 data-testid={ `${ testId }-sign-on-methods` }
@@ -274,6 +287,7 @@ export const EditApplication: FunctionComponent<EditApplicationPropsInterface> =
             <AdvancedSettings
                 appId={ application.id }
                 advancedConfigurations={ application.advancedConfigurations }
+                onFormStateChange={ (state: FormState) => setIsEditingFormPristine(state.pristine) }
                 onUpdate={ onUpdate }
                 featureConfig={ featureConfig }
                 data-testid={ `${ testId }-advanced-settings` }
@@ -286,6 +300,7 @@ export const EditApplication: FunctionComponent<EditApplicationPropsInterface> =
             <ProvisioningSettings
                 application={ application }
                 provisioningConfigurations={ application.provisioningConfigurations }
+                onFormStateChange={ (state: FormState) => setIsEditingFormPristine(state.pristine) }
                 onUpdate={ onUpdate }
                 featureConfig={ featureConfig }
                 data-testid={ `${ testId }-provisioning-settings` }
@@ -382,9 +397,50 @@ export const EditApplication: FunctionComponent<EditApplicationPropsInterface> =
         ];
     };
 
+    /**
+     * Called on tab change.
+     *
+     * @param {SyntheticEvent} e - React's original SyntheticEvent.
+     * @param {object} data - The proposed new Tab.Pane.
+     * @param {object} data.activeIndex - The new proposed activeIndex.
+     * @param {object} data.panes - Props of the new proposed active pane.
+     */
+    const handleTabChange = (e: React.MouseEvent<HTMLDivElement>, data: TabProps): void => {
+        if (isEditingFormPristine) {
+            setActiveTabIndex(data.activeIndex);
+            return;
+        }
+
+        setProposedActiveTabIndex(data.activeIndex);
+        setShowUnsavedNavConfirmationModal(true);
+    };
+
     return (
-        application && !isInboundProtocolsRequestLoading
-            ? <ResourceTab panes={ resolveTabPanes() }/>
+        (application && !isInboundProtocolsRequestLoading)
+            ? (
+                <>
+                    <ResourceTab
+                        activeIndex={ activeTabIndex }
+                        panes={ resolveTabPanes() }
+                        onTabChange={ handleTabChange }
+                    />
+                    <EditingResourceNavigationConfirmationModal
+                        type="warning"
+                        open={ showUnsavedNavConfirmationModal }
+                        onClose={ () => setShowUnsavedNavConfirmationModal(false) }
+                        onPrimaryActionClick={ () => {
+                            setActiveTabIndex(proposedActiveTabIndex);
+                            setProposedActiveTabIndex(undefined);
+                            setIsEditingFormPristine(true);
+                            setShowUnsavedNavConfirmationModal(false);
+                        } }
+                        onSecondaryActionClick={ () => {
+                            setProposedActiveTabIndex(undefined);
+                            setShowUnsavedNavConfirmationModal(false);
+                        } }
+                    />
+                </>
+            )
             : <ContentLoader/>
     );
 };

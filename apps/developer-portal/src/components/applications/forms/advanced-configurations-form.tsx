@@ -17,7 +17,7 @@
  */
 
 import { TestableComponentInterface } from "@wso2is/core/models";
-import { Field, Forms } from "@wso2is/forms";
+import { Field, Forms, FormState } from "@wso2is/forms";
 import { Hint } from "@wso2is/react-components";
 import React, { FunctionComponent, ReactElement } from "react";
 import { useTranslation } from "react-i18next";
@@ -29,6 +29,11 @@ import { AdvancedConfigurationsInterface } from "../../../models";
  */
 interface AdvancedConfigurationsFormPropsInterface extends TestableComponentInterface {
     config: AdvancedConfigurationsInterface;
+    /**
+     * Callback for form state change.
+     * @param {FormState} state - From state.
+     */
+    onFormStateChange?: (state: FormState) => void;
     onSubmit: (values: any) => void;
     /**
      * Make the form read only.
@@ -49,6 +54,7 @@ export const AdvancedConfigurationsForm: FunctionComponent<AdvancedConfiguration
 
     const {
         config,
+        onFormStateChange,
         onSubmit,
         readOnly,
         [ "data-testid" ]: testId
@@ -76,7 +82,10 @@ export const AdvancedConfigurationsForm: FunctionComponent<AdvancedConfiguration
     };
 
     return (
-        <Forms onSubmit={ (values) => onSubmit(updateConfiguration(values)) }>
+        <Forms
+            onSubmit={ (values) => onSubmit(updateConfiguration(values)) }
+            onFormStateChange={ onFormStateChange }
+        >
             <Grid>
                 <Grid.Row columns={ 1 }>
                     <Grid.Column mobile={ 16 } tablet={ 16 } computer={ 8 }>

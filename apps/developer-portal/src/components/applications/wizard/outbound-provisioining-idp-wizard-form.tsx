@@ -17,7 +17,7 @@
  */
 
 import { TestableComponentInterface } from "@wso2is/core/models";
-import { Field, FormValue, Forms } from "@wso2is/forms";
+import { Field, FormValue, Forms, FormState } from "@wso2is/forms";
 import { Hint, PrimaryButton } from "@wso2is/react-components";
 import React, { FunctionComponent, ReactElement, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -31,6 +31,11 @@ interface OutboundProvisioningIdpWizardFormPropsInterface extends TestableCompon
     initialValues: any;
     triggerSubmit: boolean;
     idpList: any;
+    /**
+     * Callback for form state change.
+     * @param {FormState} state - From state.
+     */
+    onFormStateChange?: (state: FormState) => void;
     onSubmit: (values: any) => void;
     isEdit?: boolean;
 }
@@ -56,6 +61,7 @@ export const OutboundProvisioningWizardIdpForm: FunctionComponent<OutboundProvis
         initialValues,
         idpList,
         triggerSubmit,
+        onFormStateChange,
         onSubmit,
         isEdit,
         [ "data-testid" ]: testId
@@ -169,6 +175,7 @@ export const OutboundProvisioningWizardIdpForm: FunctionComponent<OutboundProvis
         <Forms
             onSubmit={ (values) => onSubmit(getFormValues(values)) }
             submitState={ triggerSubmit && triggerSubmit }
+            onFormStateChange={ onFormStateChange }
         >
             <Grid>
                 {

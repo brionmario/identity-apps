@@ -19,6 +19,7 @@
 import { hasRequiredScopes } from "@wso2is/core/helpers";
 import { AlertLevels, SBACInterface, TestableComponentInterface } from "@wso2is/core/models";
 import { addAlert } from "@wso2is/core/store";
+import { FormState } from "@wso2is/forms";
 import { ConfirmationModal, ContentLoader, DangerZone, DangerZoneGroup } from "@wso2is/react-components";
 import React, { FunctionComponent, ReactElement, useState } from "react";
 import { Trans, useTranslation } from "react-i18next";
@@ -74,6 +75,11 @@ interface GeneralApplicationSettingsInterface extends SBACInterface<FeatureConfi
      */
     onDelete: () => void;
     /**
+     * Callback for form state change.
+     * @param {FormState} state - From state.
+     */
+    onFormStateChange?: (state: FormState) => void;
+    /**
      * Callback to update the application details.
      */
     onUpdate: (id: string) => void;
@@ -107,6 +113,7 @@ export const GeneralApplicationSettings: FunctionComponent<GeneralApplicationSet
         imageUrl,
         accessUrl,
         isLoading,
+        onFormStateChange,
         onDelete,
         onUpdate,
         template,
@@ -261,6 +268,7 @@ export const GeneralApplicationSettings: FunctionComponent<GeneralApplicationSet
                                 featureConfig?.applications, featureConfig?.applications?.scopes?.update
                             )
                         }
+                        onFormStateChange={ onFormStateChange }
                         data-testid={ `${ testId }-form` }
                     />
                     { resolveDangerActions() }

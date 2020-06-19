@@ -17,10 +17,10 @@
  */
 
 import { TestableComponentInterface } from "@wso2is/core/models";
-import { Field, Forms, Validation } from "@wso2is/forms";
+import { Field, Forms, FormState, useTrigger, Validation } from "@wso2is/forms";
 import { CopyInputField, Heading, Hint, URLInput } from "@wso2is/react-components";
 import { FormValidation } from "@wso2is/validation";
-import { isEmpty } from "lodash";
+import _ from "lodash";
 import React, { FunctionComponent, ReactElement, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Button, Divider, Form, Grid } from "semantic-ui-react";
@@ -34,6 +34,11 @@ import {
 interface InboundSAMLFormPropsInterface extends TestableComponentInterface {
     initialValues: SAML2ServiceProviderInterface;
     metadata: SAMLMetaDataInterface;
+    /**
+     * Callback for form state change.
+     * @param {FormState} state - From state.
+     */
+    onFormStateChange?: (state: FormState) => void;
     onSubmit: (values: any) => void;
     /**
      * Make the form read only.
@@ -55,6 +60,7 @@ export const InboundSAMLForm: FunctionComponent<InboundSAMLFormPropsInterface> =
     const {
         initialValues,
         metadata,
+        onFormStateChange,
         onSubmit,
         readOnly,
         [ "data-testid" ]: testId
@@ -96,10 +102,11 @@ export const InboundSAMLForm: FunctionComponent<InboundSAMLFormPropsInterface> =
     const [isAttributeProfileEnabled, setIsAttributeProfileEnabled] = useState(false);
     const [isRequestSignatureValidationEnabled, setIsRequestSignatureValidationEnabled] = useState(false);
     const [isAssertionEncryptionEnabled, setAssertionEncryptionEnabled] = useState(false);
+    const [ reinitializeTrigger, setReinitializeTrigger ] = useTrigger();
 
     const createDefaultAssertionConsumerUrl = () => {
         const allowedOptions = [];
-        if (!isEmpty(assertionConsumerUrls)) {
+        if (!_.isEmpty(assertionConsumerUrls)) {
             const assertionUrlArray = assertionConsumerUrls.split(",");
             assertionUrlArray.map((url) => {
                 allowedOptions.push({ key: assertionUrlArray.indexOf(url), text: url, value: url });
@@ -183,11 +190,26 @@ export const InboundSAMLForm: FunctionComponent<InboundSAMLFormPropsInterface> =
             (
                 <Forms
                     onSubmit={ (values) => {
-                        if (isEmpty(assertionConsumerUrls)) {
+                        if (_.isEmpty(assertionConsumerUrls)) {
                             setAssertionConsumerUrlError(true);
                         } else {
                             onSubmit(updateConfiguration(values));
                         }
+                    } }
+                    reinitialize={ reinitializeTrigger }
+                    onFormStateChange={ (state: FormState) => {
+                        onFormStateChange({
+                            ...state,
+                            pristine: state.pristine
+                                && _.isEqual(initialValues?.assertionConsumerUrls,
+                                    assertionConsumerUrls === "" ? [] : assertionConsumerUrls.split(","))
+                                && _.isEqual(initialValues?.singleSignOnProfile?.assertion?.audiences,
+                                    audiences === "" ? [] : audiences.split(","))
+                                && _.isEqual(initialValues?.singleSignOnProfile?.assertion?.recipients,
+                                    recipients === "" ? [] : recipients.split(","))
+                                && _.isEqual(initialValues?.singleLogoutProfile?.idpInitiatedSingleLogout?.returnToUrls,
+                                    returnToURLS === "" ? [] : returnToURLS.split(","))
+                        });
                     } }
                 >
                     <Grid>
@@ -306,8 +328,8 @@ export const InboundSAMLForm: FunctionComponent<InboundSAMLFormPropsInterface> =
                                             ".defaultAssertionURL.validations.empty")
                                     }
                                     default={
-                                        !isEmpty(assertionConsumerUrls) &&
-                                        assertionConsumerUrls.split(",").slice(-1)[0]
+                                        initialValues?.defaultAssertionConsumerUrl
+                                            ?? initialValues?.assertionConsumerUrls?.slice(-1)[0]
                                     }
                                     children={ createDefaultAssertionConsumerUrl() }
                                     readOnly={ readOnly }

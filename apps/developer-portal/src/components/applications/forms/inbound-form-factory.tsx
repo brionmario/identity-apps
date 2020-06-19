@@ -17,6 +17,7 @@
  */
 
 import { TestableComponentInterface } from "@wso2is/core/models";
+import { FormState } from "@wso2is/forms";
 import React, { FunctionComponent, ReactElement } from "react";
 import { InboundCustomProtocolForm } from "./inbound-custom-form";
 import { InboundOIDCForm } from "./inbound-oidc-form";
@@ -35,6 +36,11 @@ interface InboundFormFactoryInterface extends TestableComponentInterface {
     type: SupportedAuthProtocolTypes;
     onApplicationRegenerate?: () => void;
     onApplicationRevoke?: () => void;
+    /**
+     * Callback for form state change.
+     * @param {FormState} state - From state.
+     */
+    onFormStateChange?: (state: FormState) => void;
     /**
      * Make the form read only.
      */
@@ -55,6 +61,7 @@ export const InboundFormFactory: FunctionComponent<InboundFormFactoryInterface> 
     const {
         metadata,
         initialValues,
+        onFormStateChange,
         onSubmit,
         type,
         onApplicationRegenerate,
@@ -72,6 +79,7 @@ export const InboundFormFactory: FunctionComponent<InboundFormFactoryInterface> 
                     onSubmit={ onSubmit }
                     onApplicationRegenerate={ onApplicationRegenerate }
                     onApplicationRevoke={ onApplicationRevoke }
+                    onFormStateChange={ onFormStateChange }
                     readOnly={ readOnly }
                     data-testid={ testId }
                 />
@@ -81,6 +89,7 @@ export const InboundFormFactory: FunctionComponent<InboundFormFactoryInterface> 
                 <InboundSAMLForm
                     initialValues={ initialValues }
                     metadata={ metadata }
+                    onFormStateChange={ onFormStateChange }
                     onSubmit={ onSubmit }
                     readOnly={ readOnly }
                     data-testid={ testId }
@@ -91,6 +100,7 @@ export const InboundFormFactory: FunctionComponent<InboundFormFactoryInterface> 
                 <InboundWSTrustForm
                     initialValues={ initialValues }
                     metadata={ metadata }
+                    onFormStateChange={ onFormStateChange }
                     onSubmit={ onSubmit }
                     readOnly={ readOnly }
                     data-testid={ testId }
@@ -100,6 +110,7 @@ export const InboundFormFactory: FunctionComponent<InboundFormFactoryInterface> 
             return (
                 <InboundPassiveStsForm
                     initialValues={ initialValues }
+                    onFormStateChange={ onFormStateChange }
                     onSubmit={ onSubmit }
                     readOnly={ readOnly }
                     data-testid={ testId }
@@ -110,6 +121,7 @@ export const InboundFormFactory: FunctionComponent<InboundFormFactoryInterface> 
                 <InboundCustomProtocolForm
                     metadata={ metadata }
                     initialValues={ initialValues }
+                    onFormStateChange={ onFormStateChange }
                     onSubmit={ onSubmit }
                     data-testid={ testId }
                 />

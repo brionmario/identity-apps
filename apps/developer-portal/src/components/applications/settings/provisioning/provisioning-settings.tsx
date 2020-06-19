@@ -18,6 +18,7 @@
 
 import { hasRequiredScopes } from "@wso2is/core/helpers";
 import { SBACInterface, TestableComponentInterface } from "@wso2is/core/models";
+import { FormState } from "@wso2is/forms";
 import React, { FunctionComponent, ReactElement } from "react";
 import { Divider } from "semantic-ui-react";
 import { InboundProvisioningConfigurations } from "./inbound-provisioning-configuration";
@@ -43,6 +44,11 @@ interface ProvisioningSettingsPropsInterface extends SBACInterface<FeatureConfig
      */
     provisioningConfigurations: ProvisioningConfigurationInterface;
     /**
+     * Callback for form state change.
+     * @param {FormState} state - From state.
+     */
+    onFormStateChange?: (state: FormState) => void;
+    /**
      * Callback to update the application details.
      */
     onUpdate: (id: string) => void;
@@ -63,6 +69,7 @@ export const ProvisioningSettings: FunctionComponent<ProvisioningSettingsPropsIn
         application,
         featureConfig,
         provisioningConfigurations,
+        onFormStateChange,
         onUpdate,
         [ "data-testid" ]: testId
     } = props;
@@ -72,6 +79,7 @@ export const ProvisioningSettings: FunctionComponent<ProvisioningSettingsPropsIn
             <InboundProvisioningConfigurations
                 appId={ application.id }
                 provisioningConfigurations={ provisioningConfigurations }
+                onFormStateChange={ onFormStateChange }
                 onUpdate={ onUpdate }
                 readOnly={
                     !hasRequiredScopes(featureConfig?.applications, featureConfig?.applications?.scopes?.update)
@@ -84,6 +92,7 @@ export const ProvisioningSettings: FunctionComponent<ProvisioningSettingsPropsIn
             <OutboundProvisioningConfiguration
                 application={ application }
                 provisioningConfigurations={ provisioningConfigurations }
+                onFormStateChange={ onFormStateChange }
                 onUpdate={ onUpdate }
                 data-testid={ `${ testId }-outbound-configuration` }
             />

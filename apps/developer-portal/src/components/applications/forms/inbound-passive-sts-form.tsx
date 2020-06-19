@@ -17,7 +17,7 @@
  */
 
 import { TestableComponentInterface } from "@wso2is/core/models";
-import { Field, Forms, Validation } from "@wso2is/forms";
+import { Field, Forms, FormState, Validation } from "@wso2is/forms";
 import { Hint } from "@wso2is/react-components";
 import { FormValidation } from "@wso2is/validation";
 import _ from "lodash";
@@ -31,6 +31,11 @@ import { PassiveStsConfigurationInterface } from "../../../models";
  */
 interface InboundPassiveStsFormPropsInterface extends TestableComponentInterface {
     initialValues: PassiveStsConfigurationInterface;
+    /**
+     * Callback for form state change.
+     * @param {FormState} state - From state.
+     */
+    onFormStateChange?: (state: FormState) => void;
     onSubmit: (values: any) => void;
     /**
      * Make the form read only.
@@ -51,6 +56,7 @@ export const InboundPassiveStsForm: FunctionComponent<InboundPassiveStsFormProps
 
     const {
         initialValues,
+        onFormStateChange,
         onSubmit,
         readOnly,
         [ "data-testid" ]: testId
@@ -77,6 +83,7 @@ export const InboundPassiveStsForm: FunctionComponent<InboundPassiveStsFormProps
             onSubmit={ (values) => {
                 onSubmit(updateConfiguration(values));
             } }
+            onFormStateChange={ onFormStateChange }
         >
             <Grid>
                 <Grid.Row columns={ 1 }>

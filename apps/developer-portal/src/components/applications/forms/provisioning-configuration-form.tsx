@@ -17,7 +17,7 @@
  */
 
 import { TestableComponentInterface } from "@wso2is/core/models";
-import { Field, Forms } from "@wso2is/forms";
+import { Field, Forms, FormState } from "@wso2is/forms";
 import { Hint } from "@wso2is/react-components";
 import React, { FunctionComponent, ReactElement, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -32,6 +32,11 @@ import {
  */
 interface ProvisioningConfigurationFormPropsInterface extends TestableComponentInterface {
     config: ProvisioningConfigurationInterface;
+    /**
+     * Callback for form state change.
+     * @param {FormState} state - From state.
+     */
+    onFormStateChange?: (state: FormState) => void;
     onSubmit: (values: any) => void;
     useStoreList: SimpleUserStoreListItemInterface[];
     readOnly?: boolean;
@@ -50,6 +55,7 @@ export const ProvisioningConfigurationsForm: FunctionComponent<ProvisioningConfi
 
     const {
         config,
+        onFormStateChange,
         onSubmit,
         readOnly,
         useStoreList,
@@ -103,7 +109,10 @@ export const ProvisioningConfigurationsForm: FunctionComponent<ProvisioningConfi
     }, [config]);
 
     return (
-        <Forms onSubmit={ (values) => onSubmit(updateConfiguration(values)) }>
+        <Forms
+            onSubmit={ (values) => onSubmit(updateConfiguration(values)) }
+            onFormStateChange={ onFormStateChange }
+        >
             <Grid>
                 <Grid.Row columns={ 1 }>
                     <Grid.Column mobile={ 16 } tablet={ 16 } computer={ 8 }>

@@ -19,6 +19,7 @@
 import { hasRequiredScopes } from "@wso2is/core/helpers";
 import { AlertLevels, SBACInterface, TestableComponentInterface } from "@wso2is/core/models";
 import { addAlert } from "@wso2is/core/store";
+import { FormState } from "@wso2is/forms";
 import {
     ConfirmationModal,
     ContentLoader,
@@ -72,6 +73,11 @@ interface AccessConfigurationPropsInterface extends SBACInterface<FeatureConfigI
      */
     isLoading?: boolean;
     /**
+     * Callback for form state change.
+     * @param {FormState} state - From state.
+     */
+    onFormStateChange?: (state: FormState) => void;
+    /**
      * Callback to update the application details.
      */
     onUpdate: (id: string) => void;
@@ -99,6 +105,7 @@ export const AccessConfiguration: FunctionComponent<AccessConfigurationPropsInte
         inboundProtocolConfig,
         inboundProtocols,
         isLoading,
+        onFormStateChange,
         onUpdate,
         [ "data-testid" ]: testId
     } = props;
@@ -111,6 +118,7 @@ export const AccessConfiguration: FunctionComponent<AccessConfigurationPropsInte
     const [ showWizard, setShowWizard ] = useState<boolean>(false);
     const [ showDeleteConfirmationModal, setShowDeleteConfirmationModal ] = useState<boolean>(false);
     const [ protocolToDelete, setProtocolToDelete ] = useState<string>(undefined);
+    const [ dirtyForms, setDirtyForms ] = useState<string[]>([]);
 
     /**
      * Handles the inbound config delete action.
@@ -313,6 +321,18 @@ export const AccessConfiguration: FunctionComponent<AccessConfigurationPropsInte
                                                 _.isEmpty(inboundProtocolConfig[protocol])
                                                     ? undefined : inboundProtocolConfig[protocol]
                                             }
+                                            onFormStateChange={ (state: FormState) => {
+                                                if (state.pristine && dirtyForms.includes(protocol)) {
+                                                    setDirtyForms(dirtyForms.filter((form) => form !== protocol));
+                                                } else if (!state.pristine && !dirtyForms.includes(protocol)) {
+                                                    setDirtyForms([ ...dirtyForms, protocol ]);
+                                                }
+
+                                                onFormStateChange({
+                                                    ...state,
+                                                    pristine: _.isEmpty(dirtyForms)
+                                                });
+                                            } }
                                             onSubmit={
                                                 (values: any) => handleInboundConfigFormSubmit(values,
                                                     protocol)
@@ -343,6 +363,18 @@ export const AccessConfiguration: FunctionComponent<AccessConfigurationPropsInte
                                                 _.isEmpty(inboundProtocolConfig[protocol])
                                                     ? undefined : inboundProtocolConfig[protocol]
                                             }
+                                            onFormStateChange={ (state: FormState) => {
+                                                if (state.pristine && dirtyForms.includes(protocol)) {
+                                                    setDirtyForms(dirtyForms.filter((form) => form !== protocol));
+                                                } else if (!state.pristine && !dirtyForms.includes(protocol)) {
+                                                    setDirtyForms([ ...dirtyForms, protocol ]);
+                                                }
+
+                                                onFormStateChange({
+                                                    ...state,
+                                                    pristine: _.isEmpty(dirtyForms)
+                                                });
+                                            } }
                                             onSubmit={
                                                 (values: any) => handleInboundConfigFormSubmit(values,
                                                     protocol)

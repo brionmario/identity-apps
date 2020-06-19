@@ -17,7 +17,7 @@
  */
 
 import { TestableComponentInterface } from "@wso2is/core/models";
-import { Field, Forms } from "@wso2is/forms";
+import { Field, Forms, FormState } from "@wso2is/forms";
 import { Heading, Hint } from "@wso2is/react-components";
 import React, { FunctionComponent, ReactElement } from "react";
 import { useTranslation } from "react-i18next";
@@ -32,6 +32,11 @@ interface AdvanceAttributeSettingsPropsInterface extends TestableComponentInterf
     initialSubject: SubjectConfigInterface;
     initialRole: RoleConfigInterface;
     claimMappingOn: boolean;
+    /**
+     * Callback for form state change.
+     * @param {FormState} state - From state.
+     */
+    onFormStateChange?: (state: FormState) => void;
     /**
      * Make the form read only.
      */
@@ -56,6 +61,7 @@ export const AdvanceAttributeSettings: FunctionComponent<AdvanceAttributeSetting
         initialSubject,
         initialRole,
         claimMappingOn,
+        onFormStateChange,
         readOnly,
         [ "data-testid" ]: testId
     } = props;
@@ -100,6 +106,7 @@ export const AdvanceAttributeSettings: FunctionComponent<AdvanceAttributeSetting
                     submitValues(values);
                 } }
                 submitState={ triggerSubmission }
+                onFormStateChange={ onFormStateChange }
             >
                 <Grid>
                     <Grid.Row columns={ 2 }>

@@ -17,7 +17,7 @@
  */
 
 import { TestableComponentInterface } from "@wso2is/core/models";
-import { Field, Forms } from "@wso2is/forms";
+import { Field, Forms, FormState } from "@wso2is/forms";
 import React, { FunctionComponent, ReactElement, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { Button, Grid } from "semantic-ui-react";
@@ -36,6 +36,11 @@ import {
 interface InboundCustomFormPropsInterface extends TestableComponentInterface {
     metadata?: CustomInboundProtocolMetaDataInterface;
     initialValues?: CustomInboundProtocolConfigurationInterface;
+    /**
+     * Callback for form state change.
+     * @param {FormState} state - From state.
+     */
+    onFormStateChange?: (state: FormState) => void;
     onSubmit: (values: any) => void;
 }
 
@@ -53,6 +58,7 @@ export const InboundCustomProtocolForm: FunctionComponent<InboundCustomFormProps
     const {
         metadata,
         initialValues,
+        onFormStateChange,
         onSubmit,
         [ "data-testid" ]: testId
     } = props;
@@ -239,6 +245,7 @@ export const InboundCustomProtocolForm: FunctionComponent<InboundCustomFormProps
             onSubmit={ (values) => {
                 onSubmit(updateConfiguration(values));
             } }
+            onFormStateChange={ onFormStateChange }
         >
             <Grid>
                 { generateFormElements() }
