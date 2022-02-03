@@ -1,19 +1,10 @@
 /**
- * Copyright (c) 2021, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2021, WSO2 Inc. (http://www.wso2.com). All Rights Reserved.
  *
- * WSO2 Inc. licenses this file to you under the Apache License,
- * Version 2.0 (the "License"); you may not use this file except
- * in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing,
- * software distributed under the License is distributed on an
- * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
- * KIND, either express or implied. See the License for the
- * specific language governing permissions and limitations
- * under the License.
+ * This software is the property of WSO2 Inc. and its suppliers, if any.
+ * Dissemination of any information or reproduction of any material contained
+ * herein in any form is strictly forbidden, unless permitted by WSO2 expressly.
+ * You may not alter or remove any copyright or other notice from copies of this content."
  */
 
 import { ReactNode } from "react";
@@ -56,29 +47,18 @@ export interface IdentityProviderConfig {
     generalDetailsForm: {
         showCertificate: boolean;
     };
-    identityProviderList: {
-        /**
-         * Display IDPs only in the ordinary list view.
-         * If set to falls, local authenticators + federated will be shown in one grid view.
-         */
-        useLegacyListing: boolean;
-    };
     utils: {
         isAuthenticatorAllowed: (name: string) => boolean;
-        hideIdentityClaimAttributes?: (authenticatorId: string) => boolean;
-        hideLogoInputFieldInIdPGeneralSettingsForm?: (authenticatorId: string) => boolean;
-        /**
-         * If returned {@code false} the provisioning claims section is hidden
-         * entirely. Update operations will fallback to defaults.
-         * @param authenticatorId
-         */
         isProvisioningAttributesEnabled: (authenticatorId: string) => boolean;
+        hideIdentityClaimAttributes?: (authenticatorId: string) => boolean;
         /**
          * If returned {@code false} it will hide both uri mapping for role and
          * external mappings component entirely.
-         * @param authenticatorId
+         * @param authenticatorId {string}
+         * @return enabled or not {boolean}
          */
         isRoleMappingsEnabled?: (authenticatorId: string) => boolean;
+        hideLogoInputFieldInIdPGeneralSettingsForm?: (authenticatorId: string) => boolean;
     };
     /**
      * Local authenticators + Federated authenticators will be shown in one grid view as connections.
@@ -90,10 +70,6 @@ export interface IdentityProviderConfig {
         google: boolean;
         github: boolean;
         enterprise: boolean;
-        /**
-         * Adding `saml` and `oidc` template enabled property to this
-         * config under the group `enterprise-protocols`.
-         */
         saml: boolean;
         oidc: boolean;
     }

@@ -17,56 +17,47 @@
  */
 
 import React, { ReactElement } from "react";
-import { Divider, Grid, Header } from "semantic-ui-react";
+import { ExtendedDynamicConnector } from "../components/governance-connectors";
+import { GovernanceConnectorInterface, ServerConfigurationsConstants } from "../../features/server-configurations";
 import { ServerConfigurationConfig } from "./models/server-configuration";
-import { GovernanceConnectorInterface } from "../../features/server-configurations";
 
 export const serverConfigurationConfig: ServerConfigurationConfig = {
-    autoEnableConnectorToggleProperty: false,
+    autoEnableConnectorToggleProperty: true,
     connectorPropertiesToShow: [
-        "all"
+        "Recovery.ReCaptcha.Password.Enable",
+        "Recovery.NotifySuccess",
+        "Recovery.ExpiryTime",
     ],
-    connectorToggleName: {},
+    connectorToggleName: {
+        "account-recovery": ServerConfigurationsConstants.PASSWORD_RECOVERY_NOTIFICATION_BASED_ENABLE,
+        "account.lock.handler": ServerConfigurationsConstants.ACCOUNT_LOCK_ENABLE,
+        "self-sign-up": ServerConfigurationsConstants.SELF_REGISTRATION_ENABLE,
+        "sso.login.recaptcha": ServerConfigurationsConstants.RE_CAPTCHA_ALWAYS_ENABLE
+    },
     connectorsToShow: [
-        "all"
+        "account-recovery",
+        "account.lock.handler",
+        "self-sign-up",
+        "sso.login.recaptcha"
     ],
-    intendSettings: true,
+    intendSettings: false,
     renderConnector: (connector: GovernanceConnectorInterface,
-                      connectorForm: ReactElement,
-                      connectorIllustration: string,
-                      connectorSubHeading: string): ReactElement => {
-        return(
-            <Grid>
-                <Grid.Row columns={ 1 }>
-                    <Grid.Column>
-                        <Grid padded>
-                            <Grid.Row>
-                                <Grid.Column width={ 16 }>
-                                    <div
-                                        className="connector-section-with-image-bg"
-                                        style={ {
-                                            background: `url(${ connectorIllustration })`
-                                        } }
-                                    >
-                                        <Header>
-                                            { connector?.friendlyName }
-                                            <Header.Subheader>
-                                                { connectorSubHeading }
-                                            </Header.Subheader>
-                                        </Header>
-                                    </div>
-                                </Grid.Column>
-                            </Grid.Row>
-                        </Grid>
-                        <Divider />
-                        { connectorForm }
-                    </Grid.Column>
-                </Grid.Row>
-            </Grid>
+        connectorForm: ReactElement,
+        connectorIllustration: string,
+        connectorSubHeading: string): ReactElement => {
+        return (
+            <ExtendedDynamicConnector
+                connector={ connector }
+                connectorForm={ connectorForm }
+                connectorIllustration={ connectorIllustration }
+                connectorSubHeading={ connectorSubHeading }
+                connectorToggleName={ serverConfigurationConfig.connectorToggleName[ connector.name ] }
+                data-testid="governance-connector-password-recovery"
+            />
         );
     },
-    renderConnectorWithinEmphasizedSegment: true,
-    showConnectorsOnTheSidePanel: true,
-    showGovernanceConnectorCategories: true,
-    showPageHeading: true
+    renderConnectorWithinEmphasizedSegment: false,
+    showConnectorsOnTheSidePanel: false,
+    showGovernanceConnectorCategories: false,
+    showPageHeading: false
 };

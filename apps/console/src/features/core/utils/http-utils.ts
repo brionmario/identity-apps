@@ -113,7 +113,7 @@ export class HttpUtils {
         // the `401` error. Check the link in the doc comment.
         if (!error.response || error.response.status === 401) {
             if (error?.error?.code === "AUTH_CORE-RAT2-NR03") {
-                dispatchEvent(new Event(AppConstantsCore.NETWORK_ERROR_EVENT));
+                // dispatchEvent(new Event(AppConstantsCore.NETWORK_ERROR_EVENT));
             }
         }
     }

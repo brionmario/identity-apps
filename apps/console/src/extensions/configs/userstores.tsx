@@ -19,26 +19,28 @@
 import { UserstoresConfig } from "./models";
 
 export const userstoresConfig: UserstoresConfig = {
-    shouldShowUserstore: () => {
-        return false;
-    },
-    userstoreDomain: {
-        appendToUsername: true
+    shouldShowUserstore: (typeName: string) => {
+        const CONSUMER_USERSTORE_TYPE = "AsgardeoConsumerUserStoreManager";
+
+        return typeName === CONSUMER_USERSTORE_TYPE;
     },
     userstoreEdit: {
         basicDetails: {
-            showType: true
+            showType: false
         },
         groupDetails: {
-            showAdditionalProperties: true,
-            showToggles: true
+            showAdditionalProperties: false,
+            showToggles: false
         },
         userDetails: {
-            showAdditionalProperties: true,
-            showDisplayName: true
+            showAdditionalProperties: false,
+            showDisplayName: false
         }
     },
     userstoreList: {
-        allowAddingUserstores: true
+        allowAddingUserstores: false
+    },
+    userstoreDomain: {
+        appendToUsername: false
     }
 };

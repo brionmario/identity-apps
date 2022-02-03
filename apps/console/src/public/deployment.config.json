@@ -1,8 +1,10 @@
 {
     "accountApp": {
-        "path": "/myaccount/overview"
+        "path": "/myaccount/overview",
+        "skipTenant": true,
+        "useCommonPostLogoutUrl": true
     },
-    "appBaseName": "console",
+    "appBaseName": "",
     "appBaseNameForHistoryAPI": "/",
     "clientID": "CONSOLE",
     "debug": false,
@@ -16,6 +18,21 @@
         "displayName": "Develop",
         "path": "/develop/applications"
     },
+    "extensions": {
+        "applicationInsightsEnabled": false,
+        "applicationInsightsCookieDomain": "",
+        "applicationInsightsCookiePostfix": "",
+        "applicationInsightsInstrumentationKey": "",
+        "applicationInsightsProxyEndpoint": "",
+        "collaboratorUsernameRegex": "^[\\u00C0-\\u00FFa-zA-Z0-9.\\-_]+@[a-zA-Z0-9.\\-]+\\.[a-zA-Z]{2,10}$",
+        "community": "https://wso2iem-en-community.insided.com/ssoproxy/login?ssoType=openidconnect&returnUrl=https://wso2iem-en-community.insided.com/asgardeo-1",
+        "feedbackEndPoint": "https://dev.portal.asgardeo.io/api/cloud/v1/feedback/",
+        "helpCenterUrl": "https://dev.support.asgardeo.io/asp?id=asgardeo_support_login",
+        "defaultBrandedLoginScreenLogo": "https://dev.accounts.asgardeo.io/authenticationendpoint/libs/themes/asgardio/assets/images/branding/asgardeo-logo.svg",
+        "defaultBrandedLoginScreenFavicon": "https://dev.accounts.asgardeo.io/authenticationendpoint/libs/themes/asgardio/assets/images/branding/asgardeo-trifacta.svg",
+        "defaultBrandedLoginScreenCopyright": "${copyright} ${year} WSO2 Inc.",
+        "supportEmail": "asgardeo-help@wso2.com"
+    },
     "documentation": {
         "baseURL": "https://api.github.com",
         "contentBaseURL": "https://api.github.com/repos/wso2/docs-is/contents/en/docs",
@@ -27,39 +44,69 @@
         "structureFileType": "YAML",
         "structureFileURL": "https://api.github.com/repos/wso2/docs-is/contents/en/mkdocs.yml"
     },
+    "docSiteUrl": "https://dev.docs.asgardeo.io/",
     "idpConfigs": {
         "enablePKCE": true,
         "clockTolerance": 300,
         "responseMode": "query",
         "scope": [ "SYSTEM" ],
-        "serverOrigin": "https://localhost:9443",
-        "storage": "webWorker"
+        "serverOrigin": "https://dev.api.asgardeo.io",
+        "storage": "webWorker",
+        "authorizeEndpointURL": "${serverOrigin}/${tenantPrefix}/${superTenantDomain}/oauth2/authorize?ut=${userTenantDomain}",
+        "logoutEndpointURL": "${serverOrigin}/${tenantPrefix}/${superTenantDomain}/oidc/logout",
+        "oidcSessionIFrameEndpointURL": "${serverOrigin}/${tenantPrefix}/${superTenantDomain}/oidc/checksession"
     },
     "i18nResourcePath": "",
     "isSaas": true,
-    "loginCallbackPath": "",
+    "loginCallbackPath": "/login",
     "logoutCallbackPath": "",
-    "serverOrigin": "https://localhost:9443",
+    "serverOrigin": "https://dev.api.asgardeo.io",
     "routePaths": {
-        "home": "/develop/applications",
-        "login": "",
+        "home": "/getting-started",
+        "login":  "/login",
         "logout": "/logout"
     },
     "session": {
-        "userIdleTimeOut": 600,
-        "userIdleWarningTimeOut": 580,
         "sessionRefreshTimeOut": 300,
-        "checkSessionInterval": 3
+        "userIdleWarningTimeOut": 1740,
+        "checkSessionInterval": 5,
+        "userIdleTimeOut": 1800
     },
+    "superTenantProxy" : "a",
     "tenantResolutionStrategy": "id_token",
     "ui": {
-        "appCopyright": "WSO2 Identity Server ${copyright} ${year}",
-        "appTitle": "Console | WSO2 Identity Server",
+        "appCopyright": "${copyright} ${year} WSO2 Inc. All Rights Reserved",
+        "appTitle": "Asgardeo Console",
         "appName": "Console",
         "applicationTemplateLoadingStrategy": "LOCAL",
         "identityProviderTemplateLoadingStrategy": "LOCAL",
         "appLogoPath": "/assets/images/branding/logo.svg",
+        "showAppSwitchButton": true,
         "features": {
+            "accountSecurity": {
+                "enabled": true,
+                "disabledFeatures": [],
+                "scopes": {
+                    "create": [],
+                    "read": ["internal_governance_view"],
+                    "update": ["internal_governance_update"],
+                    "delete": []
+                }
+            },
+            "accountRecovery": {
+                "enabled": true,
+                "disabledFeatures": [],
+                "scopes": {
+                    "create": [],
+                    "read": [
+                        "internal_governance_view"
+                    ],
+                    "update": [
+                        "internal_governance_update"
+                    ],
+                    "delete": []
+                }
+            },
             "applications": {
                 "disabledFeatures": [],
                 "enabled": true,
@@ -74,8 +121,6 @@
                         "internal_cors_origins_view",
                         "internal_application_mgt_view",
                         "internal_claim_meta_view",
-                        "internal_role_mgt_view",
-                        "internal_userstore_view",
                         "internal_idp_view"
                     ],
                     "update": [
@@ -88,7 +133,7 @@
             },
             "approvals": {
                 "disabledFeatures": [],
-                "enabled": true,
+                "enabled": false,
                 "scopes": {
                     "create": [
                         "internal_humantask_view"
@@ -126,6 +171,24 @@
                     ]
                 }
             },
+            "branding": {
+                "enabled": true,
+                "disabledFeatures": [],
+                "scopes": {
+                    "create": [
+                        "internal_application_mgt_update"
+                    ],
+                    "delete": [
+                        "internal_application_mgt_update"
+                    ],
+                    "read": [
+                        "internal_application_mgt_view"
+                    ],
+                    "update": [
+                        "internal_application_mgt_update"
+                    ]
+                }
+            },
             "certificates": {
                 "enabled": true,
                 "disabledFeatures": [],
@@ -142,6 +205,20 @@
                     "delete": [
                         "internal_keystore_update"
                     ]
+                }
+            },
+            "developerGettingStarted":{
+                "enabled": true,
+                "disabledFeatures": [],
+                "scopes": {
+                    "create": [],
+                    "read": [
+                        "internal_application_mgt_create",
+                        "internal_idp_create",
+                        "internal_application_mgt_update"
+                    ],
+                    "update": [],
+                    "delete": []
                 }
             },
             "emailTemplates": {
@@ -224,6 +301,19 @@
                     ]
                 }
             },
+            "manageGettingStarted": {
+                "enabled": true,
+                "disabledFeatures": [],
+                "scopes": {
+                    "create": [],
+                    "read": [
+                        "internal_user_mgt_create",
+                        "internal_group_mgt_create"
+                    ],
+                    "update": [],
+                    "delete": []
+                }
+            },
             "oidcScopes": {
                 "enabled": true,
                 "disabledFeatures": [],
@@ -247,7 +337,7 @@
                 }
             },
             "secretsManagement": {
-                "enabled": true,
+                "enabled": false,
                 "disabledFeatures": [],
                 "scopes": {
                     "create": [
@@ -318,6 +408,20 @@
                     ]
                 }
             },
+            "userOnboarding": {
+                "enabled": true,
+                "disabledFeatures": [],
+                "scopes": {
+                    "create": [],
+                    "read": [
+                        "internal_governance_view"
+                    ],
+                    "update": [
+                        "internal_governance_update"
+                    ],
+                    "delete": []
+                }
+            },
             "userStores": {
                 "enabled": true,
                 "disabledFeatures": [],
@@ -366,7 +470,17 @@
                 }
             }
         },
-        "hiddenUserStores": [ ],
+        "gravatarConfig": {
+            "fallback": "404"
+        },
+        "hiddenAuthenticators": [
+            "FIDOAuthenticator",
+            "IdentifierExecutor"
+        ],
+        "i18nConfigs": {
+            "showLanguageSwitcher": false,
+            "langAutoDetectEnabled": false
+        },
         "identityProviderTemplates": {
             "enterpriseOIDC": {
                 "enabled": true
@@ -381,39 +495,30 @@
                 "enabled": true
             },
             "github": {
-                "enabled": false
+                "enabled": true
             }
         },
-        "gravatarConfig": {
-            "fallback": "404"
-        },
-        "hiddenAuthenticators": [],
-        "i18nConfigs": {
-            "showLanguageSwitcher": false,
-            "langAutoDetectEnabled":false
-        },
-        "isCookieConsentBannerEnabled": false,
+        "isCookieConsentBannerEnabled": true,
         "isGroupAndRoleSeparationEnabled": true,
         "isSignatureValidationCertificateAliasEnabled" : false,
         "isClientSecretHashEnabled": false,
         "isDefaultDialectEditingEnabled": false,
-        "isDialectAddingEnabled": true,
-        "isLeftNavigationCategorized": true,
-        "isRequestPathAuthenticationEnabled": true,
+        "isDialectAddingEnabled": false,
+        "isHeaderAvatarLabelAllowed": false,
+        "isLeftNavigationCategorized": false,
+        "isRequestPathAuthenticationEnabled": false,
         "listAllAttributeDialects": false,
         "privacyPolicyConfigs": {
-            "visibleOnFooter": true
+            "visibleOnFooter": false
         },
-        "productName": "WSO2 Identity Server",
+        "productName": "Asgardeo",
         "productVersionConfig": {
-            "allowSnapshot": true,
-            "textCase": "uppercase",
-            "labelColor": "primary"
+            "productVersion": "BETA"
         },
         "selfAppIdentifier": "Console",
         "systemAppsIdentifiers": [ "Console", "My Account" ],
         "theme": {
-            "name": "default"
+            "name": "asgardio"
         }
     }
 }

@@ -79,7 +79,7 @@ export interface ApplicationConfig {
                 secondFactorDisabledInFirstStep: ReactNode;
             };
         };
-    };
+    },
     templates: {
         android: boolean;
         oidc: boolean;
@@ -90,6 +90,5 @@ export interface ApplicationConfig {
     };
     customApplication: {
         allowedProtocolTypes: string[];
-    }
-
+    };
 }

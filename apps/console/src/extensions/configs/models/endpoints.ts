@@ -10,4 +10,9 @@
 /**
  * Interface for the resource endpoints of extended features.
  */
-export type ExtendedFeatureResourceEndpointsInterface = Record<string, unknown>;
+export interface ExtendedFeatureResourceEndpointsInterface {
+    /**
+     * Tenant Branding Preference API endpoint.
+     */
+    brandingPreference: string;
+}
