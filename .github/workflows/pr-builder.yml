@@ -4,7 +4,7 @@ name: PR Builder
 
 on:
   pull_request:
-    branches: [ re-architecture-exp-yarn-benchmark ]
+    branches: [ re-architecture-exp-npm-benchmark ]
     paths-ignore:
       - "docs/**"
       - "CONTRIBUTING.md"
