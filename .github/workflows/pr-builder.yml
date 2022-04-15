@@ -34,11 +34,3 @@ jobs:
         uses: actions/setup-node@v2
         with:
           node-version: ${{ matrix.node-version }}
-
-      - name: 🛠️ Bootstrap Dependencies
-        id: bootstrap-npm-and-lerna-dependencies
-        run: time yarn install --frozen-lockfile
-
-      - name: 🏛️ Build
-        id: build-with-yarn
-        run: time yarn build
