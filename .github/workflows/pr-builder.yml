@@ -38,7 +38,3 @@ jobs:
       - name: 🛠️ Bootstrap Dependencies
         id: bootstrap-npm-and-lerna-dependencies
         run: time npm run bootstrap
-
-      - name: 🏛️ Build
-        id: build-with-yarn
-        run: time yarn build
