@@ -4,7 +4,7 @@ name: PR Builder
 
 on:
   pull_request:
-    branches: [ master ]
+    branches: [ re-architecture-exp-existing-build-benchmark ]
     paths-ignore:
       - "docs/**"
       - "CONTRIBUTING.md"
@@ -194,4 +194,3 @@ jobs:
           key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
           restore-keys: |
             ${{ runner.os }}-maven-
-
