@@ -4,7 +4,7 @@ name: PR Builder
 
 on:
   pull_request:
-    branches: [ re-architecture-exp-npm-benchmark ]
+    branches: [ re-architecture-exp-yarn-benchmark ]
     paths-ignore:
       - "docs/**"
       - "CONTRIBUTING.md"
@@ -22,7 +22,7 @@ jobs:
     strategy:
       matrix:
         node-version: [ "12.x" ]
-        os: [ ubuntu-latest, windows-latest, macOS-latest ]
+        os: [ ubuntu-latest ]
     runs-on: ${{ matrix.os }}
     steps:
       - name: ⬇️ Checkout
@@ -37,4 +37,8 @@ jobs:
 
       - name: 🛠️ Bootstrap Dependencies
         id: bootstrap-npm-and-lerna-dependencies
-        run: npm run bootstrap
+        run: time npm run bootstrap
+
+      - name: 🏛️ Build
+        id: build-with-yarn
+        run: time yarn build
