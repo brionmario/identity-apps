@@ -22,7 +22,7 @@ jobs:
     strategy:
       matrix:
         node-version: [ "12.x", "14.x", "16.x" ]
-        os: [ ubuntu-latest, windows-latest, macOS-latest ]
+        os: [ ubuntu-latest ]
     runs-on: ${{ matrix.os }}
     steps:
       - name: ⬇️ Checkout
@@ -37,4 +37,8 @@ jobs:
 
       - name: 🛠️ Bootstrap Dependencies
         id: bootstrap-npm-and-lerna-dependencies
-        run:  yarn
+        run: time yarn install --frozen-lockfile
+
+      - name: 🏛️ Build
+        id: build-with-yarn
+        run: time yarn build
