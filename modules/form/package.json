@@ -13,7 +13,7 @@
     "types": "dist/types/index.d.ts",
     "scripts": {
         "prebuild": "npm run clean",
-        "build": "npm run compile",
+        "build": "pnpm prebuild && npm run compile",
         "clean": "rimraf ./dist",
         "compile": "npx run-script-os",
         "compile:win32": "..\\..\\node_modules\\.bin\\tsc -p tsconfig.json",
@@ -31,9 +31,9 @@
         "typecheck": "npm run compile"
     },
     "dependencies": {
-        "@wso2is/core": "^1.2.893",
-        "@wso2is/react-components": "^1.2.893",
-        "@wso2is/validation": "^1.2.893",
+        "@wso2is/core": "*",
+        "@wso2is/react-components": "*",
+        "@wso2is/validation": "*",
         "final-form": "^4.20.2",
         "joi": "^17.4.0",
         "lodash-es": "^4.17.21",
