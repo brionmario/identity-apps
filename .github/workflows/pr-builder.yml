@@ -4,7 +4,7 @@ name: PR Builder
 
 on:
   pull_request:
-    branches: [ re-architecture-benchmark ]
+    branches: [ master ]
     paths-ignore:
       - "docs/**"
       - "CONTRIBUTING.md"
