@@ -58,3 +58,7 @@ jobs:
       - name: 🏗️ Build
         id: build-the-project
         run: pnpm build
+
+      - name: 🌵 Build with Cache
+        id: build-the-project
+        run: pnpm build
