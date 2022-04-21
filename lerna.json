@@ -1,9 +1,11 @@
 {
+    "npmClient": "yarn",
+    "useWorkspaces": true,
     "packages": [
         "apps/*",
         "components/theme",
         "modules/*",
         "tests"
     ],
-    "version": "1.2.893"
+    "version": "1.2.894"
 }

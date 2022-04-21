@@ -1,7 +1,7 @@
 {
     "private": true,
     "name": "@wso2is/webapps",
-    "version": "1.2.893",
+    "version": "1.2.894",
     "description": "WSO2 Identity Server Web Applications",
     "keywords": [
         "WSO2",
@@ -10,6 +10,12 @@
         "WSO2 Identity Apps"
     ],
     "repository": "https://github.com/wso2/identity-apps.git",
+    "workspaces": [
+        "apps/*",
+        "components/theme",
+        "modules/*",
+        "tests"
+    ],
     "scripts": {
         "bootstrap": "npm install && npx lerna bootstrap",
         "bootstrap:hoist": "npm install && npx lerna bootstrap --hoist --no-ci",

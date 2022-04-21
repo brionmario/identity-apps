@@ -51,7 +51,6 @@ jobs:
             ${{ runner.os }}-build-${{ env.cache-name }}-
             ${{ runner.os }}-build-
             ${{ runner.os }}-
-
   typecheck:
     name: ʦ Typecheck (STATIC ANALYSIS)
     runs-on: ubuntu-latest
@@ -86,7 +85,6 @@ jobs:
             ${{ runner.os }}-build-${{ env.cache-name }}-
             ${{ runner.os }}-build-
             ${{ runner.os }}-
-
   test:
     name: 👾 Unit Test (TESTING)
     needs: [ lint, typecheck ]
@@ -123,7 +121,6 @@ jobs:
           npm run test:unit:coverage:aggregate
           npm run nyc:text-summary-report
           npm run nyc:text-report
-
       - name: 🔆 Cache NPM directory
         id: cache-npm-modules
         uses: actions/cache@v2
@@ -134,7 +131,6 @@ jobs:
             ${{ runner.os }}-build-${{ env.cache-name }}-
             ${{ runner.os }}-build-
             ${{ runner.os }}-
-
   build:
     name: 🚧 Build
     needs: [ lint, typecheck, test ]
@@ -185,7 +181,6 @@ jobs:
             ${{ runner.os }}-build-${{ env.cache-name }}-
             ${{ runner.os }}-build-
             ${{ runner.os }}-
-
       - name: 💾 Cache local Maven repository
         id: cache-maven-m2
         uses: actions/cache@v2
