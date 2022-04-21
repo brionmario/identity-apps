@@ -1,0 +1,43 @@
+# This workflow will build PRs submitted to the master branch.
+
+name: Benchmark
+
+on:
+  pull_request:
+    branches: [ re-architecture-benchmark ]
+    paths-ignore:
+      - "docs/**"
+      - "CONTRIBUTING.md"
+      - "CREDITS.md"
+      - "LICENSE"
+      - "pull_request_template.md"
+      - "README.md"
+      - "**/README.md"
+      - "SECURITY.md"
+  workflow_dispatch:
+
+jobs:
+  benchmark:
+    name: ⏲️ Benchmark
+    strategy:
+      matrix:
+        node-version: [ 12.x, 14.x, 16.x ]
+        os: [ ubuntu-latest ]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: ⬇️ Checkout
+        id: checkout
+        uses: actions/checkout@v2.3.3
+        with:
+          fetch-depth: 2
+
+      - name: 🟢 Setup node
+        id: setup-node
+        uses: actions/setup-node@v2
+        with:
+          node-version: ${{ matrix.node-version }}
+
+      - name: 🛠️ Bootstrap Dependencies
+        id: bootstrap-dependencies
+        run: |
+          npm run bootstrap
