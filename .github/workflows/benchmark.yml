@@ -60,5 +60,5 @@ jobs:
         run: pnpm build
 
       - name: 🌵 Build with Cache
-        id: build-the-project
+        id: build-the-project-with-cache
         run: pnpm build
