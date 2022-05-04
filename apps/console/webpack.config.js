@@ -185,7 +185,18 @@ module.exports = (env) => {
                 {
                     exclude: /node_modules/,
                     test: /\.css$/,
-                    use: [ "postcss-loader" ]
+                    use: [
+                        {
+                            loader: "postcss-loader",
+                            options: {
+                                plugins: () => [
+                                    require("autoprefixer")({
+                                        "browsers": [ "> 1%", "last 2 versions" ]
+                                    })
+                                ]
+                            }
+                        }
+                    ]
                 },
                 {
                     exclude: /node_modules/,
