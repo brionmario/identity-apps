@@ -25,6 +25,16 @@
             "command": "npm run build",
             "cwd": "apps/console"
           }
+        },
+        "serve": {
+          "executor": "@nrwl/workspace:run-commands",
+          "outputs": [
+            "apps/build/console"
+          ],
+          "options": {
+            "command": "npm run start",
+            "cwd": "apps/console"
+          }
         }
       },
       "outputs": [
@@ -116,6 +126,16 @@
           ],
           "options": {
             "command": "npm run build",
+            "cwd": "apps/myaccount"
+          }
+        },
+        "serve": {
+          "executor": "@nrwl/workspace:run-commands",
+          "outputs": [
+            "apps/build/myaccount"
+          ],
+          "options": {
+            "command": "npm run start",
             "cwd": "apps/myaccount"
           }
         }
