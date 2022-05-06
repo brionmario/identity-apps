@@ -126,11 +126,35 @@
           ],
           "options": {
             "command": "npm run build",
-            "cwd": "apps/myaccount"
+            "cwd": "apps/myaccount",
+            "outputPath": "apps/myaccount/build/myaccount"
           }
         },
         "serve": {
           "executor": "@nrwl/workspace:run-commands",
+          "outputs": [
+            "{options.outputPath}"
+          ],
+          "options": {
+            "command": "npm run start",
+            "cwd": "apps/myaccount",
+            "outputPath": "apps/myaccount/build/myaccount"
+          }
+        },
+        "lint": {
+          "executor": "@nrwl/linter:eslint",
+          "outputs": [
+            "{options.outputFile}"
+          ],
+          "options": {
+            "lintFilePatterns": [
+              "apps/myaccount/**/*.{ts,tsx,js,jsx}"
+            ],
+            "eslintConfig": "apps/myaccount/.eslintrc.js"
+          }
+        },
+        "test": {
+          "executor": "@nrwl/jest:jest",
           "outputs": [
             "apps/build/myaccount"
           ],
