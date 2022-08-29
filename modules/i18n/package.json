@@ -42,7 +42,7 @@
     "license": "Apache-2.0",
     "dependencies": {
         "@types/jest": "^26.0.14",
-        "@wso2is/core": "*",
+        "@wso2is/core": "^1.4.67",
         "babel-jest": "^26.3.0",
         "i18next": "^17.0.11",
         "i18next-browser-languagedetector": "^3.0.3",

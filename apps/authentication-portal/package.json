@@ -12,7 +12,7 @@
         "clean:node-modules": "pnpm rimraf node_modules"
     },
     "dependencies": {
-        "@wso2is/theme": "*",
+        "@wso2is/theme": "^1.4.67",
         "rimraf": "^3.0.2"
     }
 }
