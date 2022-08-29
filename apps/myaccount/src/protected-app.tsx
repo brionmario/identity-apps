@@ -111,7 +111,7 @@ export const ProtectedApp: FunctionComponent<AppPropsInterface> = (): ReactEleme
             // When the tenant domain changes, we have to reset the auth callback in session storage.
             // If not, it will hang and the app will be unresponsive with in the tab.
             // We can skip clearing the callback for super tenant since we do not put it in the path.
-            if (response.tenantDomain !== AppConstants.getSuperTenant()) {
+            if (tenantDomain !== AppConstants.getSuperTenant()) {
                 // If the auth callback already has the logged in tenant's path, we can skip the reset.
                 if (
                     !AuthenticateUtils.isValidAuthenticationCallbackUrl(
@@ -171,20 +171,9 @@ export const ProtectedApp: FunctionComponent<AppPropsInterface> = (): ReactEleme
             }
 
             getDecodedIDToken()
-                .then((idToken) => {
-                    const subParts = idToken.sub.split("@");
-                    const tenantDomain = subParts[ subParts.length - 1 ];
-                    const username = idToken.sub;
-
+                .then(() => {
                     dispatch(
-                        setSignIn<AuthenticatedUserInfo>({
-                            displayName: response.displayName,
-                            display_name: response.displayName,
-                            email: response.email,
-                            scope: response.allowedScopes,
-                            tenantDomain: response.tenantDomain ?? tenantDomain,
-                            username: username
-                        })
+                        setSignIn<AuthenticatedUserInfo>(AuthenticateUtils.getSignInState(response))
                     );
                 })
                 .catch((error) => {

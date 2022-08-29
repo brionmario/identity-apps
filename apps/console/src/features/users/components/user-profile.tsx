@@ -17,7 +17,7 @@
  */
 
 import { ProfileConstants } from "@wso2is/core/constants";
-import { hasRequiredScopes } from "@wso2is/core/helpers";
+import { hasRequiredScopes, resolveUserEmails } from "@wso2is/core/helpers";
 import {
     AlertInterface,
     AlertLevels,
@@ -40,13 +40,14 @@ import {
 import { AxiosError } from "axios";
 import isEmpty from "lodash-es/isEmpty";
 import moment from "moment";
-import React, { FunctionComponent, ReactElement, ReactNode, useEffect, useState } from "react";
+import React, { FunctionComponent, ReactElement, ReactNode, useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useDispatch, useSelector } from "react-redux";
 import { Button, CheckboxProps, Divider, DropdownItemProps, Form, Grid, Icon, Input } from "semantic-ui-react";
 import { ChangePasswordComponent } from "./user-change-password";
 import { commonConfig,userConfig } from "../../../extensions";
 import { AppConstants, AppState, FeatureConfigInterface, history } from "../../core";
+import { OrganizationUtils } from "../../organizations/utils";
 import { ConnectorPropertyInterface, ServerConfigurationsConstants  } from "../../server-configurations";
 import { getUserDetails, updateUserInfo } from "../api";
 import { UserManagementConstants } from "../constants";
@@ -91,6 +92,10 @@ interface UserProfilePropsInterface extends TestableComponentInterface, SBACInte
      * User Disclaimer Message
      */
     editUserDisclaimerMessage?: ReactNode;
+    /**
+     * Admin user type
+     */
+    adminUserType?: string;
 }
 
 /**
@@ -114,6 +119,7 @@ export const UserProfile: FunctionComponent<UserProfilePropsInterface> = (
         isReadOnlyUserStoresLoading,
         tenantAdmin,
         editUserDisclaimerMessage,
+        adminUserType,
         [ "data-testid" ]: testId
     } = props;
 
@@ -149,6 +155,9 @@ export const UserProfile: FunctionComponent<UserProfilePropsInterface> = (
     const modifiedDate = user?.meta?.lastModified;
 
     useEffect(() => {
+        if (!OrganizationUtils.isCurrentOrganizationRoot()) {
+            return;
+        }
 
         if (connectorProperties && Array.isArray(connectorProperties) && connectorProperties?.length > 0) {
 
@@ -220,6 +229,15 @@ export const UserProfile: FunctionComponent<UserProfilePropsInterface> = (
     }, []);
 
     /**
+     * This will add role attribute to countries search input to prevent autofill suggestions.
+     */
+    const onCountryRefChange = useCallback(node => {
+        if (node !== null) { 
+            node.children[0].children[1].children[0].role = "presentation";
+        }
+    }, []);
+
+    /**
      * The following function maps profile details to the SCIM schemas.
      *
      * @param proSchema ProfileSchema
@@ -229,63 +247,148 @@ export const UserProfile: FunctionComponent<UserProfilePropsInterface> = (
         if (!isEmpty(profileSchema) && !isEmpty(userInfo)) {
             const tempProfileInfo: Map<string, string> = new Map<string, string>();
 
-            proSchema.forEach((schema: ProfileSchemaInterface) => {
-                const schemaNames = schema.name.split(".");
+            if (adminUserType === "internal") {
+                proSchema.forEach((schema: ProfileSchemaInterface) => {
+                    const schemaNames = schema.name.split(".");
 
-                if (schemaNames.length === 1) {
-                    if (schemaNames[0] === "emails") {
-                        if(ProfileUtils.isStringArray(userInfo[schemaNames[0]])) {
-                            const emails: any[] = userInfo[schemaNames[0]];
-                            const primaryEmail = emails.find((subAttribute) => typeof subAttribute === "string");
+                    if (schemaNames.length === 1) {
+                        if (schemaNames[0] === "emails") {
+                            const emailSchema:string = schemaNames[0];
 
-                            // Set the primary email value.
-                            tempProfileInfo.set(schema.name, primaryEmail);
+                            if(ProfileUtils.isStringArray(userInfo[emailSchema])) {
+                                const emails: any[] = userInfo[emailSchema];
+                                const primaryEmail = emails.find((subAttribute) => typeof subAttribute === "string");
+
+                                // Set the primary email value.
+                                tempProfileInfo.set(schema.name, primaryEmail);
+                            }
+                        } else {
+                            const schemaName:string = schemaNames[0];
+
+                            if (schema.extended && userInfo[ProfileConstants.SCIM2_WSO2_USER_SCHEMA]) {
+                                tempProfileInfo.set(
+                                    schema.name, userInfo[ProfileConstants.SCIM2_WSO2_USER_SCHEMA][schemaName]
+                                );
+
+                                return;
+                            }
+                            tempProfileInfo.set(schema.name, userInfo[schemaName]);
                         }
                     } else {
-                        if (schema.extended && userInfo[ProfileConstants.SCIM2_ENT_USER_SCHEMA]) {
-                            tempProfileInfo.set(
-                                schema.name, userInfo[ProfileConstants.SCIM2_ENT_USER_SCHEMA][schemaNames[0]]
-                            );
+                        if (schemaNames[0] === "name") {
+                            const nameSchema = schemaNames[0];
+                            const givenNameSchema = schemaNames[1];
 
-                            return;
-                        }
-                        tempProfileInfo.set(schema.name, userInfo[schemaNames[0]]);
-                    }
-                } else {
-                    if (schemaNames[0] === "name") {
-                        const name = schemaNames[1] && userInfo[schemaNames[0]] &&
-                            userInfo[schemaNames[0]][schemaNames[1]] && (
-                            tempProfileInfo.set(schema.name, userInfo[schemaNames[0]][schemaNames[1]])
-                        );
-                    } else {
-                        if (schema.extended && userInfo[ProfileConstants.SCIM2_ENT_USER_SCHEMA]) {
-                            const complexEnterprise = schemaNames[0] && schemaNames[1] &&
-                                userInfo[ProfileConstants.SCIM2_ENT_USER_SCHEMA][schemaNames[0]] &&
-                                userInfo[ProfileConstants.SCIM2_ENT_USER_SCHEMA][schemaNames[0]][schemaNames[1]] && (
-                                tempProfileInfo.set(schema.name,
-                                    userInfo[ProfileConstants.SCIM2_ENT_USER_SCHEMA][schemaNames[0]][schemaNames[1]])
+                            givenNameSchema && userInfo[nameSchema] &&
+                                userInfo[nameSchema][givenNameSchema] && (
+                                tempProfileInfo.set(schema.name, userInfo[nameSchema][givenNameSchema])
                             );
                         } else {
-                            const subValue = userInfo[schemaNames[0]] &&
-                                Array.isArray(userInfo[schemaNames[0]]) &&
-                                userInfo[schemaNames[0]]
-                                    .find((subAttribute) => subAttribute.type === schemaNames[1]);
-                            
-                            if (schemaNames[0] === "addresses") {
-                                tempProfileInfo.set(
-                                    schema.name,
-                                    subValue ? subValue.formatted : ""
+                            const schemaName = schemaNames[0];
+                            const schemaSecondaryProperty = schemaNames[1];
+
+                            if (schema.extended && userInfo[ProfileConstants.SCIM2_WSO2_USER_SCHEMA]) {
+                                schemaName && schemaSecondaryProperty &&
+                                    userInfo[ProfileConstants
+                                        .SCIM2_WSO2_USER_SCHEMA][schemaName] &&
+                                    userInfo[ProfileConstants
+                                        .SCIM2_WSO2_USER_SCHEMA][schemaName][schemaSecondaryProperty] && (
+                                    tempProfileInfo.set(schema.name,
+                                        userInfo[ProfileConstants
+                                            .SCIM2_WSO2_USER_SCHEMA][schemaName][schemaSecondaryProperty])
                                 );
                             } else {
-                                tempProfileInfo.set(
-                                    schema.name,
-                                    subValue ? subValue.value : ""
-                                );
+                                const subValue = userInfo[schemaName] &&
+                                    Array.isArray(userInfo[schemaName]) &&
+                                    userInfo[schemaName]
+                                        .find((subAttribute) => subAttribute.type === schemaSecondaryProperty);
+
+                                if (schemaName === "addresses") {
+                                    tempProfileInfo.set(
+                                        schema.name,
+                                        subValue ? subValue.formatted : ""
+                                    );
+                                } else {
+                                    tempProfileInfo.set(
+                                        schema.name,
+                                        subValue ? subValue.value : ""
+                                    );
+                                }
                             }
                         }
                     }
-                }
-            });
+                });
+            } else {
+                proSchema.forEach((schema: ProfileSchemaInterface) => {
+                    const schemaNames = schema.name.split(".");
+
+                    if (schemaNames.length === 1) {
+                        if (schemaNames[0] === "emails") {
+                            const emailSchema:string = schemaNames[0];
+
+                            if(ProfileUtils.isStringArray(userInfo[emailSchema])) {
+                                const emails: any[] = userInfo[emailSchema];
+                                const primaryEmail = emails.find((subAttribute) => typeof subAttribute === "string");
+
+                                // Set the primary email value.
+                                tempProfileInfo.set(schema.name, primaryEmail);
+                            }
+                        } else {
+                            const schemaName:string = schemaNames[0];
+
+                            if (schema.extended && userInfo[ProfileConstants.SCIM2_ENT_USER_SCHEMA]) {
+                                tempProfileInfo.set(
+                                    schema.name, userInfo[ProfileConstants.SCIM2_ENT_USER_SCHEMA][schemaName]
+                                );
+
+                                return;
+                            }
+                            tempProfileInfo.set(schema.name, userInfo[schemaName]);
+                        }
+                    } else {
+                        if (schemaNames[0] === "name") {
+                            const nameSchema = schemaNames[0];
+                            const givenNameSchema = schemaNames[1];
+
+                            givenNameSchema && userInfo[nameSchema] &&
+                                userInfo[nameSchema][givenNameSchema] && (
+                                tempProfileInfo.set(schema.name, userInfo[nameSchema][givenNameSchema])
+                            );
+                        } else {
+                            const schemaName = schemaNames[0];
+                            const schemaSecondaryProperty = schemaNames[1];
+
+                            if (schema.extended && userInfo[ProfileConstants.SCIM2_ENT_USER_SCHEMA]) {
+                                schemaName && schemaSecondaryProperty &&
+                                    userInfo[ProfileConstants.SCIM2_ENT_USER_SCHEMA][schemaName] &&
+                                    userInfo[ProfileConstants
+                                        .SCIM2_ENT_USER_SCHEMA][schemaName][schemaSecondaryProperty] && (
+                                    tempProfileInfo.set(schema.name,
+                                        userInfo[ProfileConstants
+                                            .SCIM2_ENT_USER_SCHEMA][schemaName][schemaSecondaryProperty])
+                                );
+                            } else {
+                                const subValue = userInfo[schemaName] &&
+                                    Array.isArray(userInfo[schemaName]) &&
+                                    userInfo[schemaName]
+                                        .find((subAttribute) => subAttribute.type === schemaSecondaryProperty);
+
+                                if (schemaName === "addresses") {
+                                    tempProfileInfo.set(
+                                        schema.name,
+                                        subValue ? subValue.formatted : ""
+                                    );
+                                } else {
+                                    tempProfileInfo.set(
+                                        schema.name,
+                                        subValue ? subValue.value : ""
+                                    );
+                                }
+                            }
+                        }
+                    }
+                });
+            }
 
             setProfileInfo(tempProfileInfo);
         }
@@ -296,6 +399,7 @@ export const UserProfile: FunctionComponent<UserProfilePropsInterface> = (
      */
     useEffect(() => {
         const sortedSchemas = ProfileUtils.flattenSchemas([ ...profileSchemas ])
+            .filter(item => item.name !== ProfileConstants?.SCIM2_SCHEMA_DICTIONARY.get("META_VERSION"))
             .sort((a: ProfileSchemaInterface, b: ProfileSchemaInterface) => {
                 if (!a.displayOrder) {
                     return -1;
@@ -369,127 +473,254 @@ export const UserProfile: FunctionComponent<UserProfilePropsInterface> = (
             value: {}
         };
 
-        profileSchema.forEach((schema: ProfileSchemaInterface) => {
+        if (adminUserType === "internal") {
+            profileSchema.forEach((schema: ProfileSchemaInterface) => {
 
-            if (schema.mutability === ProfileConstants.READONLY_SCHEMA) {
-                return;
-            }
+                if (schema.mutability === ProfileConstants.READONLY_SCHEMA) {
+                    return;
+                }
 
-            let opValue = {};
+                let opValue = {};
 
-            const schemaNames = schema.name.split(".");
+                const schemaNames = schema.name.split(".");
 
-            if (schema.name !== "roles.default") {
-                if (values.get(schema.name) !== undefined && values.get(schema.name).toString() !== undefined) {
+                if (schema.name !== "roles.default") {
+                    if (values.get(schema.name) !== undefined && values.get(schema.name).toString() !== undefined) {
 
-                    if (ProfileUtils.isMultiValuedSchemaAttribute(profileSchema, schemaNames[0]) ||
-                        schemaNames[0] === "phoneNumbers") {
+                        if (ProfileUtils.isMultiValuedSchemaAttribute(profileSchema, schemaNames[0]) ||
+                            schemaNames[0] === "phoneNumbers") {
 
-                        const attributeValues = [];
-                        const attValues: Map<string, string | string []> = new Map();
+                            const attributeValues = [];
+                            const attValues: Map<string, string | string []> = new Map();
 
-                        if (schemaNames.length === 1 || schema.name === "phoneNumbers.mobile") {
+                            if (schemaNames.length === 1 || schema.name === "phoneNumbers.mobile") {
 
-                            // Extract the sub attributes from the form values.
-                            for (const value of values.keys()) {
-                                const subAttribute = value.split(".");
+                                // Extract the sub attributes from the form values.
+                                for (const value of values.keys()) {
+                                    const subAttribute = value.split(".");
 
-                                if (subAttribute[0] === schemaNames[0]) {
-                                    attValues.set(value, values.get(value));
-                                }
-                            }
-
-                            for (const [ key, value ] of attValues) {
-                                const attribute = key.split(".");
-
-                                if (value && value !== "") {
-                                    if (attribute.length === 1) {
-                                        attributeValues.push(value);
-                                    } else {
-                                        attributeValues.push({
-                                            type: attribute[1],
-                                            value: value
-                                        });
+                                    if (subAttribute[0] === schemaNames[0]) {
+                                        attValues.set(value, values.get(value));
                                     }
                                 }
-                            }
 
-                            opValue = {
-                                [schemaNames[0]]: attributeValues
-                            };
-                        }
-                    } else {
-                        if (schemaNames.length === 1) {
-                            if (schema.extended) {
-                                opValue = {
-                                    [ProfileConstants.SCIM2_ENT_USER_SCHEMA]: {
-                                        [schemaNames[0]]: schema.type.toUpperCase() === "BOOLEAN" ?
-                                            !!values.get(schema.name)?.includes(schema.name) :
-                                            values.get(schemaNames[0])
-                                    }
-                                };
-                            } else {
-                                opValue = schemaNames[0] === UserManagementConstants.SCIM2_SCHEMA_DICTIONARY
-                                    .get("EMAILS")
-                                    ? { emails: [ values.get(schema.name) ] }
-                                    : { [schemaNames[0]]: values.get(schemaNames[0]) };
-                            }
-                        } else {
-                            if(schema.extended) {
-                                opValue = {
-                                    [ProfileConstants.SCIM2_ENT_USER_SCHEMA]: {
-                                        [schemaNames[0]]: {
-                                            [schemaNames[1]]: schema.type.toUpperCase() === "BOOLEAN" ?
-                                                !!values.get(schema.name)?.includes(schema.name) :
-                                                values.get(schema.name)
+                                for (const [ key, value ] of attValues) {
+                                    const attribute = key.split(".");
+
+                                    if (value && value !== "") {
+                                        if (attribute.length === 1) {
+                                            attributeValues.push(value);
+                                        } else {
+                                            attributeValues.push({
+                                                type: attribute[1],
+                                                value: value
+                                            });
                                         }
                                     }
+                                }
+
+                                opValue = {
+                                    [schemaNames[0]]: attributeValues
                                 };
-                            } else if (schemaNames[0] === UserManagementConstants.SCIM2_SCHEMA_DICTIONARY.get("NAME")) {
-                                const name = values.get(schema.name) && (
+                            }
+                        } else {
+                            if (schemaNames.length === 1) {
+                                if (schema.extended) {
                                     opValue = {
-                                        name: { [schemaNames[1]]: values.get(schema.name) }
-                                    }
-                                );
-                            } else {
-                                if (schemaNames[0] === "addresses") {
-                                    opValue = {
-                                        [schemaNames[0]]: [
-                                            {
-                                                formatted: values.get(schema.name),
-                                                type: schemaNames[1]
-                                            }
-                                        ]
+                                        [ProfileConstants.SCIM2_WSO2_USER_SCHEMA]: {
+                                            [schemaNames[0]]: schema.type.toUpperCase() === "BOOLEAN" ?
+                                                !!values.get(schema.name)?.includes(schema.name) :
+                                                values.get(schemaNames[0])
+                                        }
                                     };
-                                } else if (schemaNames[0] !== "emails" && schemaNames[0] !== "phoneNumbers") {
+                                } else {
+                                    opValue = schemaNames[0] === UserManagementConstants.SCIM2_SCHEMA_DICTIONARY
+                                        .get("EMAILS")
+                                        ? { emails: [ values.get(schema.name) ] }
+                                        : { [schemaNames[0]]: values.get(schemaNames[0]) };
+                                }
+                            } else {
+                                if(schema.extended) {
                                     opValue = {
-                                        [schemaNames[0]]: [
-                                            {
-                                                type: schemaNames[1],
-                                                value: schema.type.toUpperCase() === "BOOLEAN" ?
+                                        [ProfileConstants.SCIM2_WSO2_USER_SCHEMA]: {
+                                            [schemaNames[0]]: {
+                                                [schemaNames[1]]: schema.type.toUpperCase() === "BOOLEAN" ?
                                                     !!values.get(schema.name)?.includes(schema.name) :
                                                     values.get(schema.name)
                                             }
-                                        ]
+                                        }
                                     };
+                                } else if (schemaNames[0] === UserManagementConstants.SCIM2_SCHEMA_DICTIONARY
+                                    .get("NAME")) {
+                                    values.get(schema.name) && (
+                                        opValue = {
+                                            name: { [schemaNames[1]]: values.get(schema.name) }
+                                        }
+                                    );
+                                } else {
+                                    if (schemaNames[0] === "addresses") {
+                                        opValue = {
+                                            [schemaNames[0]]: [
+                                                {
+                                                    formatted: values.get(schema.name),
+                                                    type: schemaNames[1]
+                                                }
+                                            ]
+                                        };
+                                    } else if (schemaNames[0] !== "emails" && schemaNames[0] !== "phoneNumbers") {
+                                        opValue = {
+                                            [schemaNames[0]]: [
+                                                {
+                                                    type: schemaNames[1],
+                                                    value: schema.type.toUpperCase() === "BOOLEAN" ?
+                                                        !!values.get(schema.name)?.includes(schema.name) :
+                                                        values.get(schema.name)
+                                                }
+                                            ]
+                                        };
+                                    }
                                 }
                             }
                         }
                     }
                 }
-            }
 
-            operation = {
-                op: "replace",
-                value: opValue
-            };
-            // This is required as the api doesn't support patching the address attributes at the
-            // sub attribute level using 'replace' operation.
-            if (schemaNames[0] === "addresses") {
-                operation.op = "add";
-            }
-            data.Operations.push(operation);
-        });
+                operation = {
+                    op: "replace",
+                    value: opValue
+                };
+                // This is required as the api doesn't support patching the address attributes at the
+                // sub attribute level using 'replace' operation.
+                if (schemaNames[0] === "addresses") {
+                    operation.op = "add";
+                }
+                data.Operations.push(operation);
+            });
+
+        } else {
+            profileSchema.forEach((schema: ProfileSchemaInterface) => {
+
+                if (schema.mutability === ProfileConstants.READONLY_SCHEMA) {
+                    return;
+                }
+
+                let opValue = {};
+
+                const schemaNames = schema.name.split(".");
+
+                if (schema.name !== "roles.default") {
+                    if (values.get(schema.name) !== undefined && values.get(schema.name).toString() !== undefined) {
+
+                        if (ProfileUtils.isMultiValuedSchemaAttribute(profileSchema, schemaNames[0]) ||
+                            schemaNames[0] === "phoneNumbers") {
+
+                            const attributeValues = [];
+                            const attValues: Map<string, string | string []> = new Map();
+
+                            if (schemaNames.length === 1 || schema.name === "phoneNumbers.mobile") {
+
+                                // Extract the sub attributes from the form values.
+                                for (const value of values.keys()) {
+                                    const subAttribute = value.split(".");
+
+                                    if (subAttribute[0] === schemaNames[0]) {
+                                        attValues.set(value, values.get(value));
+                                    }
+                                }
+
+                                for (const [ key, value ] of attValues) {
+                                    const attribute = key.split(".");
+
+                                    if (value && value !== "") {
+                                        if (attribute.length === 1) {
+                                            attributeValues.push(value);
+                                        } else {
+                                            attributeValues.push({
+                                                type: attribute[1],
+                                                value: value
+                                            });
+                                        }
+                                    }
+                                }
+
+                                opValue = {
+                                    [schemaNames[0]]: attributeValues
+                                };
+                            }
+                        } else {
+                            if (schemaNames.length === 1) {
+                                if (schema.extended) {
+                                    opValue = {
+                                        [ProfileConstants.SCIM2_ENT_USER_SCHEMA]: {
+                                            [schemaNames[0]]: schema.type.toUpperCase() === "BOOLEAN" ?
+                                                !!values.get(schema.name)?.includes(schema.name) :
+                                                values.get(schemaNames[0])
+                                        }
+                                    };
+                                } else {
+                                    opValue = schemaNames[0] === UserManagementConstants.SCIM2_SCHEMA_DICTIONARY
+                                        .get("EMAILS")
+                                        ? { emails: [ values.get(schema.name) ] }
+                                        : { [schemaNames[0]]: values.get(schemaNames[0]) };
+                                }
+                            } else {
+                                if(schema.extended) {
+                                    opValue = {
+                                        [ProfileConstants.SCIM2_ENT_USER_SCHEMA]: {
+                                            [schemaNames[0]]: {
+                                                [schemaNames[1]]: schema.type.toUpperCase() === "BOOLEAN" ?
+                                                    !!values.get(schema.name)?.includes(schema.name) :
+                                                    values.get(schema.name)
+                                            }
+                                        }
+                                    };
+                                } else if (schemaNames[0] === UserManagementConstants.SCIM2_SCHEMA_DICTIONARY
+                                    .get("NAME")) {
+                                    values.get(schema.name) && (
+                                        opValue = {
+                                            name: { [schemaNames[1]]: values.get(schema.name) }
+                                        }
+                                    );
+                                } else {
+                                    if (schemaNames[0] === "addresses") {
+                                        opValue = {
+                                            [schemaNames[0]]: [
+                                                {
+                                                    formatted: values.get(schema.name),
+                                                    type: schemaNames[1]
+                                                }
+                                            ]
+                                        };
+                                    } else if (schemaNames[0] !== "emails" && schemaNames[0] !== "phoneNumbers") {
+                                        opValue = {
+                                            [schemaNames[0]]: [
+                                                {
+                                                    type: schemaNames[1],
+                                                    value: schema.type.toUpperCase() === "BOOLEAN" ?
+                                                        !!values.get(schema.name)?.includes(schema.name) :
+                                                        values.get(schema.name)
+                                                }
+                                            ]
+                                        };
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                operation = {
+                    op: "replace",
+                    value: opValue
+                };
+                // This is required as the api doesn't support patching the address attributes at the
+                // sub attribute level using 'replace' operation.
+                if (schemaNames[0] === "addresses") {
+                    operation.op = "add";
+                }
+                data.Operations.push(operation);
+            });
+        }
 
         setIsSubmitting(true);
 
@@ -555,7 +786,7 @@ export const UserProfile: FunctionComponent<UserProfilePropsInterface> = (
      * The method handles the locking and disabling of user account.
      */
     const handleDangerActions = (attributeName: string, attributeValue: boolean): void => {
-        const data = {
+        let data = {
             "Operations": [
                 {
                     "op": "replace",
@@ -568,6 +799,22 @@ export const UserProfile: FunctionComponent<UserProfilePropsInterface> = (
             ],
             "schemas": [ "urn:ietf:params:scim:api:messages:2.0:PatchOp" ]
         };
+
+        if (adminUserType === "internal") {
+            data = {
+                "Operations": [
+                    {
+                        "op": "replace",
+                        "value": {
+                            [ProfileConstants.SCIM2_WSO2_USER_SCHEMA]: {
+                                [attributeName]: attributeValue
+                            }
+                        }
+                    }
+                ],
+                "schemas": [ "urn:ietf:params:scim:api:messages:2.0:PatchOp" ]
+            };
+        }
 
         updateUserInfo(user.id, data)
             .then(() => {
@@ -593,15 +840,15 @@ export const UserProfile: FunctionComponent<UserProfilePropsInterface> = (
                             ? (
                                 attributeValue
                                     ? t("console:manage.features.user.profile.notifications.lockUserAccount." +
-                                        "success.message", { name: user.userName })
+                                        "success.message", { name: user.emails && user.emails !== undefined ? resolveUserEmails(user?.emails) : user.userName })
                                     : t("console:manage.features.user.profile.notifications.unlockUserAccount." +
-                                        "success.message", { name: user.userName })
+                                        "success.message", { name: user.emails && user.emails !== undefined ? resolveUserEmails(user?.emails) : user.userName })
                             ) : (
                                 attributeValue
                                     ? t("console:manage.features.user.profile.notifications.disableUserAccount." +
-                                        "success.message", { name: user.userName })
+                                        "success.message", { name: user.emails && user.emails !== undefined ? resolveUserEmails(user?.emails) : user.userName })
                                     : t("console:manage.features.user.profile.notifications.enableUserAccount." +
-                                        "success.message", { name: user.userName })
+                                        "success.message", { name: user.emails && user.emails !== undefined ? resolveUserEmails(user?.emails) : user.userName })
                             )
                 });
                 setShowLockDisableConfirmationModal(false);
@@ -748,6 +995,7 @@ export const UserProfile: FunctionComponent<UserProfilePropsInterface> = (
         } else if (schema.name === "country") {
             return (
                 <Field
+                    ref = { onCountryRefChange }
                     data-testid={ `${ testId }-profile-form-${ schema.name }-input` }
                     name={ schema.name }
                     label={ fieldName }
@@ -756,15 +1004,24 @@ export const UserProfile: FunctionComponent<UserProfilePropsInterface> = (
                     placeholder={ "Select your" + " " + fieldName }
                     type="dropdown"
                     value={ profileInfo.get(schema.name) }
-                    children={ countryList ? countryList.map(list => {
-                        return {
-                            "data-testid": `${ testId }-profile-form-country-dropdown-` +  list.value as string,
-                            flag: list.flag,
-                            key: list.key as string,
-                            text: list.text as string,
-                            value: list.value as string
-                        };
-                    }) : [] }
+                    children={ [ {
+                        "data-testid": `${ testId }-profile-form-country-dropdown-empty` as string,
+                        key: "empty-country" as string,
+                        text: "Select your country" as string,
+                        value: "" as string
+                    } ].concat(
+                        countryList 
+                            ? countryList.map(list => {
+                                return {
+                                    "data-testid": `${ testId }-profile-form-country-dropdown-` +  list.value as string,
+                                    flag: list.flag,
+                                    key: list.key as string,
+                                    text: list.text as string,
+                                    value: list.value as string
+                                };
+                            }) 
+                            : [] 
+                     ) }
                     key={ key }
                     disabled={ false }
                     readOnly={ isReadOnly || schema.mutability === ProfileConstants.READONLY_SCHEMA }
@@ -839,27 +1096,55 @@ export const UserProfile: FunctionComponent<UserProfilePropsInterface> = (
                 <Grid.Column mobile={ 12 } tablet={ 12 } computer={ 6 }>
                     {
                         schema.name === "userName" && domainName.length > 1 ? (
-                            <Form.Field>
-                                <label>
-                                    { !commonConfig.userEditSection.showEmail
-                                        ? fieldName + " (Email)"
-                                        : fieldName
-                                    }
-                                </label>
-                                <Input
-                                    data-testid={ `${ testId }-profile-form-${ schema.name }-input` }
-                                    name={ schema.name }
-                                    label={ domainName[0] + " / " }
-                                    required={ schema.required }
-                                    requiredErrorMessage={ fieldName + " " + "is required" }
-                                    placeholder={ "Enter your" + " " + fieldName }
-                                    type="text"
-                                    value={ domainName[1] }
-                                    key={ key }
-                                    readOnly={ isReadOnly || schema.mutability === ProfileConstants.READONLY_SCHEMA }
-                                    maxLength={ 30 }
-                                />
-                            </Form.Field>
+                            <>
+                                {
+                                    adminUserType === "internal" ? (
+                                        <Form.Field>
+                                            <label>
+                                                { !commonConfig.userEditSection.showEmail
+                                                    ? fieldName + " (Email)"
+                                                    : fieldName
+                                                }
+                                            </label>
+                                            <Input
+                                                data-testid={ `${ testId }-profile-form-${ schema.name }-input` }
+                                                name={ schema.name }
+                                                required={ schema.required }
+                                                requiredErrorMessage={ fieldName + " " + "is required" }
+                                                placeholder={ "Enter your" + " " + fieldName }
+                                                type="text"
+                                                value={ domainName[1] }
+                                                key={ key }
+                                                readOnly
+                                                maxLength={ 30 }
+                                            />
+                                        </Form.Field>
+                                    ) : (
+                                        <Form.Field>
+                                            <label>
+                                                { !commonConfig.userEditSection.showEmail
+                                                    ? fieldName + " (Email)"
+                                                    : fieldName
+                                                }
+                                            </label>
+                                            <Input
+                                                data-testid={ `${ testId }-profile-form-${ schema.name }-input` }
+                                                name={ schema.name }
+                                                label={ domainName[0] + " / " }
+                                                required={ schema.required }
+                                                requiredErrorMessage={ fieldName + " " + "is required" }
+                                                placeholder={ "Enter your" + " " + fieldName }
+                                                type="text"
+                                                value={ domainName[1] }
+                                                key={ key }
+                                                readOnly={ isReadOnly ||
+                                                    schema.mutability === ProfileConstants.READONLY_SCHEMA }
+                                                maxLength={ 30 }
+                                            />
+                                        </Form.Field>
+                                    )
+                                }
+                            </>
                         ) : (
                             resolveFormField(schema, fieldName, key)
                         )
@@ -870,7 +1155,7 @@ export const UserProfile: FunctionComponent<UserProfilePropsInterface> = (
     };
 
     return (
-        !isReadOnlyUserStoresLoading 
+        !isReadOnlyUserStoresLoading
             ? (<>
                 {
                     <Grid>
@@ -879,7 +1164,8 @@ export const UserProfile: FunctionComponent<UserProfilePropsInterface> = (
                                 {
                                     (hasRequiredScopes(featureConfig?.users,
                                         featureConfig?.users?.scopes?.update, allowedScopes) &&
-                                        !isReadOnly && user.userName !== "admin") && (
+                                        !isReadOnly && user.userName !== "admin" &&
+                                        adminUserType === "None") && (
                                         <Button
                                             basic
                                             color="orange"
@@ -977,13 +1263,13 @@ export const UserProfile: FunctionComponent<UserProfilePropsInterface> = (
                                                 <Grid.Column mobile={ 12 } tablet={ 12 } computer={ 6 }>
                                                     <Form.Field>
                                                         <label>
-                                                            { t("console:manage.features.user.profile.fields."+
+                                                            { t("console:manage.features.user.profile.fields." +
                                                                 "createdDate") }
                                                         </label>
                                                         <Input
                                                             name="createdDate"
                                                             type="text"
-                                                            value={ createdDate ? 
+                                                            value={ createdDate ?
                                                                 moment(createdDate).format("YYYY-MM-DD") : "" }
                                                             readOnly={ true }
                                                         />
@@ -998,13 +1284,13 @@ export const UserProfile: FunctionComponent<UserProfilePropsInterface> = (
                                                 <Grid.Column mobile={ 12 } tablet={ 12 } computer={ 6 }>
                                                     <Form.Field>
                                                         <label>
-                                                            { t("console:manage.features.user.profile.fields."+
+                                                            { t("console:manage.features.user.profile.fields." +
                                                                     "modifiedDate") }
                                                         </label>
                                                         <Input
                                                             name="modifiedDate"
                                                             type="text"
-                                                            value={ modifiedDate ? 
+                                                            value={ modifiedDate ?
                                                                 moment(modifiedDate).format("YYYY-MM-DD") : "" }
                                                             readOnly={ true }
                                                         />
@@ -1112,7 +1398,7 @@ export const UserProfile: FunctionComponent<UserProfilePropsInterface> = (
                                 { editingAttribute.name === ProfileConstants
                                     .SCIM2_SCHEMA_DICTIONARY.get("ACCOUNT_LOCKED")
                                     ? t("console:manage.features.user.lockUser.confirmationModal.header")
-                                    : t("console:manage.features.user.disableUser.confirmationModal.header") 
+                                    : t("console:manage.features.user.disableUser.confirmationModal.header")
                                 }
                             </ConfirmationModal.Header>
                             <ConfirmationModal.Message
@@ -1145,7 +1431,7 @@ export const UserProfile: FunctionComponent<UserProfilePropsInterface> = (
                     user={ user }
                     handleUserUpdate={ handleUserUpdate }
                 />
-            </>) 
+            </>)
             : <ContentLoader dimmer/>
     );
 };
@@ -1154,5 +1440,6 @@ export const UserProfile: FunctionComponent<UserProfilePropsInterface> = (
  * User profile component default props.
  */
 UserProfile.defaultProps = {
+    adminUserType: "None",
     "data-testid": "user-mgt-user-profile"
 };

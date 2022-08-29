@@ -19,12 +19,8 @@
 <%= htmlWebpackPlugin.options.contentType %>
 <%= htmlWebpackPlugin.options.importUtil %>
 <%= htmlWebpackPlugin.options.importSuperTenantConstant %>
-
-<script>
-    var userAccessedPath = window.location.href;
-    sessionStorage.setItem("auth_callback_url_my_account", userAccessedPath.split(window.origin)[1]);
-    sessionStorage.setItem("userAccessedPath", userAccessedPath.split(window.origin)[1]);
-</script>
+<%= htmlWebpackPlugin.options.importOwaspEncode %>
+<%= htmlWebpackPlugin.options.getOrganizationManagementAvailability %>
 
 <jsp:scriptlet>
     <%= htmlWebpackPlugin.options.requestForwardSnippet %>
@@ -43,17 +39,19 @@
                 window.location.href = applicationDomain+'/'+"<%= htmlWebpackPlugin.options.basename %>"
             }
         </script>
-        <script src="https://unpkg.com/@asgardeo/auth-spa@0.3.3/dist/asgardeo-spa.production.min.js"></script>
+        <script src="/<%= htmlWebpackPlugin.options.basename %>/auth-spa-0.3.3.min.js"></script>
     </head>
     <body>
         <script>
             var serverOrigin = "<%= htmlWebpackPlugin.options.serverUrl %>";
-            var authorizationCode = "<%= htmlWebpackPlugin.options.authorizationCode %>" != "null" 
-                                        ? "<%= htmlWebpackPlugin.options.authorizationCode %>" 
+            var authorizationCode = "<%= htmlWebpackPlugin.options.authorizationCode %>" != "null"
+                                        ? "<%= htmlWebpackPlugin.options.authorizationCode %>"
                                         : null;
-            var authSessionState = "<%= htmlWebpackPlugin.options.sessionState %>" != "null" 
-                                        ? "<%= htmlWebpackPlugin.options.sessionState %>" 
+            var authSessionState = "<%= htmlWebpackPlugin.options.sessionState %>" != "null"
+                                        ? "<%= htmlWebpackPlugin.options.sessionState %>"
                                         : null;
+            var isOrganizationManagementEnabled = JSON.parse("<%= htmlWebpackPlugin.options.isOrganizationManagementEnabled %>");
+
 
             if(!authorizationCode) {
                 function getApiPath(path) {
@@ -75,6 +73,12 @@
                     scope: ["openid SYSTEM"],
                     storage: "webWorker",
                     enablePKCE: true
+                }
+
+                if(isOrganizationManagementEnabled) {
+                    authConfig.endpoints = {
+                        authorizationEndpoint: getApiPath("/t/carbon.super/oauth2/authorize?ut=")
+                    }
                 }
 
                 auth.initialize(authConfig);

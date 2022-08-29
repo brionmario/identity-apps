@@ -16,7 +16,6 @@
 * under the License.
 */
 
-import { getAllLocalClaims } from "@wso2is/core/api";
 import { AlertLevels, Claim, ClaimsGetParams, ExternalClaim, TestableComponentInterface } from "@wso2is/core/models";
 import { addAlert } from "@wso2is/core/store";
 import { Field, FormValue, Forms, Validation } from "@wso2is/forms";
@@ -25,6 +24,8 @@ import React, { FunctionComponent, ReactElement, useEffect, useState } from "rea
 import { useTranslation } from "react-i18next";
 import { useDispatch } from "react-redux";
 import { Grid } from "semantic-ui-react";
+import { applicationConfig } from "../../../../../extensions";
+import { getAllLocalClaims } from "../../../../claims/api";
 import { sortList } from "../../../../core";
 import { getAnExternalClaim, updateAnExternalClaim } from "../../../api";
 import { ClaimManagementConstants } from "../../../constants";
@@ -114,7 +115,7 @@ export const EditExternalClaim: FunctionComponent<EditExternalClaimsPropsInterfa
     useEffect(() => {
         setIsClaimsLoading(true);
         const params: ClaimsGetParams = {
-            "exclude-identity-claims": true,
+            "exclude-identity-claims": applicationConfig.excludeIdentityClaims,
             filter: null,
             limit: null,
             offset: null,
@@ -324,13 +325,15 @@ export const EditExternalClaim: FunctionComponent<EditExternalClaimsPropsInterfa
                                         key: index,
                                         text: (
                                             <div className="multiline">
-                                            { claim?.displayName }
-                                            <Code className="description" 
-                                                compact 
-                                                withBackground={ false }>
-                                                { claim.claimURI }
-                                            </Code>
-                                        </div>),
+                                                { claim?.displayName }
+                                                <Code 
+                                                    className="description" 
+                                                    compact 
+                                                    withBackground={ false }>
+                                                    { claim?.claimURI }
+                                                </Code>
+                                            </div>
+                                        ),
                                         value: claim?.claimURI
                                     };
                                 })

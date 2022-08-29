@@ -4,7 +4,7 @@
     <parent>
         <groupId>org.wso2.identity.apps</groupId>
         <artifactId>identity-apps</artifactId>
-        <version>1.2.893-SNAPSHOT</version>
+        <version>1.4.67-SNAPSHOT</version>
         <relativePath>../../pom.xml</relativePath>
     </parent>
 
@@ -54,11 +54,20 @@
                     <groupId>commons-io</groupId>
                     <artifactId>commons-io</artifactId>
                 </exclusion>
+                <exclusion>
+                    <groupId>org.ops4j.pax.logging</groupId>
+                    <artifactId>pax-logging-api</artifactId>
+                </exclusion>
             </exclusions>
         </dependency>
         <dependency>
             <groupId>org.wso2.orbit.org.owasp.encoder</groupId>
             <artifactId>encoder</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.wso2.identity.apps</groupId>
+            <artifactId>org.wso2.identity.apps.taglibs.layout.controller</artifactId>
+            <version>1.4.34</version>
         </dependency>
     </dependencies>
 
@@ -88,5 +97,4 @@
             </plugin>
         </plugins>
     </build>
-
 </project>

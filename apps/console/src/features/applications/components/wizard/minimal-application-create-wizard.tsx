@@ -54,6 +54,8 @@ import {
     history,
     store
 } from "../../../core";
+import { TierLimitReachErrorModal } from "../../../core/components/tier-limit-reach-error-modal";
+import { OrganizationUtils } from "../../../organizations/utils";
 import { createApplication, getApplicationList, getApplicationTemplateData } from "../../api";
 import { getInboundProtocolLogos } from "../../configs";
 import { ApplicationManagementConstants } from "../../constants";
@@ -137,7 +139,7 @@ export const MinimalAppCreateWizard: FunctionComponent<MinimalApplicationCreateW
     const [ protocolFormValues, setProtocolFormValues ] = useState<Record<string, any>>(undefined);
     const [
         customApplicationProtocol,
-        setCustomApplicationProtocol 
+        setCustomApplicationProtocol
     ] = useState<SupportedAuthProtocolTypes>(SupportedAuthProtocolTypes.OAUTH2_OIDC);
     const [ isSubmitting, setIsSubmitting ] = useState<boolean>(false);
     const [ generalFormValues, setGeneralFormValues ] = useState<Map<string, FormValue>>(undefined);
@@ -146,6 +148,7 @@ export const MinimalAppCreateWizard: FunctionComponent<MinimalApplicationCreateW
     const [ issuerError, setIssuerError ] = useState<boolean>(false);
     const [ metaUrlError, setMetaUrlError ] = useState<boolean>(false);
     const [ protocolValuesChange, setProtocolValuesChange ] = useState<boolean>(false);
+    const [ openLimitReachedModal, setOpenLimitReachedModal ] = useState<boolean>(false);
     const nameRef = useRef<HTMLDivElement>();
     const issuerRef = useRef<HTMLDivElement>();
     const metaUrlRef = useRef<HTMLDivElement>();
@@ -159,7 +162,9 @@ export const MinimalAppCreateWizard: FunctionComponent<MinimalApplicationCreateW
 
     useEffect(() => {
         // Stop fetching CORS origins if the selected template is `Expert Mode`.
-        if (!selectedTemplate || selectedTemplate.id === CustomApplicationTemplate.id) {
+        if (!selectedTemplate
+            || selectedTemplate.id === CustomApplicationTemplate.id
+            || !OrganizationUtils.isCurrentOrganizationRoot()) {
             return;
         }
 
@@ -284,7 +289,21 @@ export const MinimalAppCreateWizard: FunctionComponent<MinimalApplicationCreateW
                     }
                 };
             } else if (customApplicationProtocol === SupportedAuthProtocolTypes.SAML) {
+                
                 application.templateId = ApplicationManagementConstants.CUSTOM_APPLICATION_SAML;
+
+                if (samlConfigureMode === SAMLConfigModes.MANUAL) {
+                    application.inboundProtocolConfiguration.saml.manualConfiguration = Object.assign(
+                        application.inboundProtocolConfiguration.saml.manualConfiguration,
+                        {
+                            attributeProfile: {
+                                "alwaysIncludeAttributesInResponse": true,
+                                "enabled": true
+                            }
+                        }
+                    );
+                }
+
             } else if (customApplicationProtocol === SupportedAuthProtocolTypes.WS_FEDERATION) {
                 application.templateId = ApplicationManagementConstants.CUSTOM_APPLICATION_PASSIVE_STS;
             }
@@ -335,7 +354,7 @@ export const MinimalAppCreateWizard: FunctionComponent<MinimalApplicationCreateW
                     }
 
                     if (selectedTemplate.id === CustomApplicationTemplate.id) {
-                        defaultTabIndex = 1;
+                        defaultTabIndex = applicationConfig.customApplication.defaultTabIndex;
                     }
 
                     history.push({
@@ -355,15 +374,7 @@ export const MinimalAppCreateWizard: FunctionComponent<MinimalApplicationCreateW
                 if (error.response.status === 403 &&
                     error?.response?.data?.code ===
                     ApplicationManagementConstants.ERROR_CREATE_LIMIT_REACHED.getErrorCode()) {
-
-                    setAlert({
-                        code: ApplicationManagementConstants.ERROR_CREATE_LIMIT_REACHED.getErrorCode(),
-                        description: t(ApplicationManagementConstants.ERROR_CREATE_LIMIT_REACHED.getErrorDescription()),
-                        level: AlertLevels.ERROR,
-                        message: t(ApplicationManagementConstants.ERROR_CREATE_LIMIT_REACHED.getErrorMessage()),
-                        traceId: ApplicationManagementConstants.ERROR_CREATE_LIMIT_REACHED.getErrorTraceId()
-                    });
-                    scrollToNotification();
+                    setOpenLimitReachedModal(true);
 
                     return;
                 }
@@ -371,8 +382,7 @@ export const MinimalAppCreateWizard: FunctionComponent<MinimalApplicationCreateW
                 if (error.response && error.response.data && error.response.data.code &&
                     error.response.data.code === ApplicationManagementConstants.ERROR_CODE_ISSUER_EXISTS) {
                     if (protocolValuesChange) {
-                        if (selectedTemplate.authenticationProtocol === SupportedAuthProtocolTypes.SAML && 
-                            samlConfigureMode !== SAMLConfigModes.MANUAL) {
+                        if (samlConfigureMode !== SAMLConfigModes.MANUAL) {
                             setAlert({
                                 description: error.response.data.description,
                                 level: AlertLevels.ERROR,
@@ -440,6 +450,14 @@ export const MinimalAppCreateWizard: FunctionComponent<MinimalApplicationCreateW
      */
     const handleWizardClose = (): void => {
         closeWizard();
+    };
+
+    /**
+     * Close the limit reached modal.
+     */
+    const handleLimitReachedModalClose = (): void => {
+        setOpenLimitReachedModal(false);
+        handleWizardClose();
     };
 
     /**
@@ -593,7 +611,7 @@ export const MinimalAppCreateWizard: FunctionComponent<MinimalApplicationCreateW
 
             /**
              * Enable to have SAML wizard without config mode options.
-             * 
+             *
              * @example
              * <SAMLProtocolSettingsWizardForm
              *     fields={ [ "issuer", "assertionConsumerURLs" ] }
@@ -699,6 +717,10 @@ export const MinimalAppCreateWizard: FunctionComponent<MinimalApplicationCreateW
             return null;
         }
 
+        if (template.id === "mobile" || template.id === "desktop") {
+            return null;
+        }
+
         const templates: SupportedAuthProtocolTypes[] | ApplicationTemplateInterface[] = isCustom
             ? getSupportedCustomProtocols()
             : subTemplates;
@@ -739,7 +761,7 @@ export const MinimalAppCreateWizard: FunctionComponent<MinimalApplicationCreateW
                                             ? false
                                             : (subTemplate as ApplicationTemplateInterface).previewOnly;
                                         const onClick = () => {
-                                            // If `previewOnly`, avoid click actions. 
+                                            // If `previewOnly`, avoid click actions.
                                             if ((subTemplate as ApplicationTemplateInterface).previewOnly) {
                                                 return;
                                             }
@@ -909,7 +931,7 @@ export const MinimalAppCreateWizard: FunctionComponent<MinimalApplicationCreateW
                             { resolveMinimalProtocolFormFields() }
                         </Grid.Column>
                     </Grid.Row>
-                    { 
+                    {
                         // The Management App checkbox is only present in OIDC Standard-Based apps
                         (customApplicationProtocol === SupportedAuthProtocolTypes.OAUTH2_OIDC
                             && selectedTemplate?.templateId === "custom-application") && (
@@ -1008,58 +1030,84 @@ export const MinimalAppCreateWizard: FunctionComponent<MinimalApplicationCreateW
     };
 
     return (
-        <ModalWithSidePanel
-            open={ true }
-            className="wizard minimal-application-create-wizard"
-            dimmer="blurring"
-            onClose={ handleWizardClose }
-            closeOnDimmerClick={ false }
-            closeOnEscape
-            data-testid={ `${ testId }-modal` }
-        >
-            <ModalWithSidePanel.MainPanel>
-                <ModalWithSidePanel.Header className="wizard-header">
-                    { title }
-                    { subTitle && (
-                        <Heading as="h6">
-                            { subTitle }
-                            <DocumentationLink
-                                link={ resolveDocumentationLink() }
-                            >
-                                { t("common:learnMore") }
-                            </DocumentationLink>
-                        </Heading>
+        <>
+            { openLimitReachedModal && (
+                <TierLimitReachErrorModal
+                    actionLabel={ t(
+                        "console:develop.features.applications.notifications." +
+                        "tierLimitReachedError.emptyPlaceholder.action"
                     ) }
-                </ModalWithSidePanel.Header>
-                <ModalWithSidePanel.Content>{ resolveContent() }</ModalWithSidePanel.Content>
-                <ModalWithSidePanel.Actions>
-                    <Grid>
-                        <Grid.Row column={ 1 }>
-                            <Grid.Column mobile={ 8 } tablet={ 8 } computer={ 8 }>
-                                <LinkButton floated="left" onClick={ handleWizardClose }>
-                                    { t("common:cancel") }
-                                </LinkButton>
-                            </Grid.Column>
-                            <Grid.Column mobile={ 8 } tablet={ 8 } computer={ 8 }>
-                                <PrimaryButton
-                                    floated="right"
-                                    onClick={ () => {
-                                        setIssuerError(false);
-                                        setSubmit();
-                                    } }
-                                    data-testid={ `${ testId }-next-button` }
-                                    loading={ isSubmitting }
-                                    disabled={ isSubmitting }
+                    handleModalClose={ handleLimitReachedModalClose }
+                    header={ t(
+                        "console:develop.features.applications.notifications.tierLimitReachedError.heading"
+                    ) }
+                    description={ t(
+                        "console:develop.features.applications.notifications." +
+                        "tierLimitReachedError.emptyPlaceholder.subtitles"
+                    ) }
+                    message={ t(
+                        "console:develop.features.applications.notifications." +
+                        "tierLimitReachedError.emptyPlaceholder.title"
+                    ) }
+                    openModal={ openLimitReachedModal }
+                />
+            ) }
+            <ModalWithSidePanel
+                open={ !openLimitReachedModal }
+                className="wizard minimal-application-create-wizard"
+                dimmer="blurring"
+                onClose={ handleWizardClose }
+                closeOnDimmerClick={ false }
+                closeOnEscape
+                data-testid={ `${ testId }-modal` }
+            >
+                <ModalWithSidePanel.MainPanel>
+                    <ModalWithSidePanel.Header className="wizard-header">
+                        { title }
+                        { subTitle && (
+                            <Heading as="h6">
+                                { subTitle }
+                                <DocumentationLink
+                                    link={ resolveDocumentationLink() }
                                 >
-                                    { t("common:register") }
-                                </PrimaryButton>
-                            </Grid.Column>
-                        </Grid.Row>
-                    </Grid>
-                </ModalWithSidePanel.Actions>
-            </ModalWithSidePanel.MainPanel>
-            { renderHelpPanel() }
-        </ModalWithSidePanel>
+                                    { t("common:learnMore") }
+                                </DocumentationLink>
+                            </Heading>
+                        ) }
+                    </ModalWithSidePanel.Header>
+                    <ModalWithSidePanel.Content>{ resolveContent() }</ModalWithSidePanel.Content>
+                    <ModalWithSidePanel.Actions>
+                        <Grid>
+                            <Grid.Row column={ 1 }>
+                                <Grid.Column mobile={ 8 } tablet={ 8 } computer={ 8 }>
+                                    <LinkButton
+                                        floated="left"
+                                        onClick={ handleWizardClose }
+                                    >
+                                        { t("common:cancel") }
+                                    </LinkButton>
+                                </Grid.Column>
+                                <Grid.Column mobile={ 8 } tablet={ 8 } computer={ 8 }>
+                                    <PrimaryButton
+                                        floated="right"
+                                        onClick={ () => {
+                                            setIssuerError(false);
+                                            setSubmit();
+                                        } }
+                                        data-testid={ `${ testId }-next-button` }
+                                        loading={ isSubmitting }
+                                        disabled={ isSubmitting }
+                                    >
+                                        { t("common:register") }
+                                    </PrimaryButton>
+                                </Grid.Column>
+                            </Grid.Row>
+                        </Grid>
+                    </ModalWithSidePanel.Actions>
+                </ModalWithSidePanel.MainPanel>
+                { renderHelpPanel() }
+            </ModalWithSidePanel>
+        </>
     );
 };
 

@@ -40,7 +40,7 @@ export class AppConstants {
      * @return {string}
      */
     public static getAdminViewBasePath(): string {
-        return window["AppUtils"].getConfig().adminApp.basePath;
+        return window["AppUtils"]?.getConfig()?.adminApp.basePath;
     }
 
     /**
@@ -49,7 +49,7 @@ export class AppConstants {
      * @return {string}
      */
     public static getAdminViewHomePath(): string {
-        return window["AppUtils"].getConfig().adminApp.path;
+        return window["AppUtils"]?.getConfig()?.adminApp.path;
     }
 
     /**
@@ -67,7 +67,7 @@ export class AppConstants {
      * @return {string}
      */
     public static getDeveloperViewBasePath(): string {
-        return window["AppUtils"].getConfig().developerApp.basePath;
+        return window["AppUtils"]?.getConfig()?.developerApp.basePath;
     }
 
     /**
@@ -76,7 +76,7 @@ export class AppConstants {
      * @return {string}
      */
     public static getDeveloperViewHomePath(): string {
-        return window["AppUtils"].getConfig().developerApp.path;
+        return window["AppUtils"]?.getConfig()?.developerApp.path;
     }
 
     /**
@@ -98,7 +98,7 @@ export class AppConstants {
      * @return {string}
      */
     public static getTenantQualifiedAppBasename(): string {
-        return window["AppUtils"].getConfig().appBaseWithTenant;
+        return window["AppUtils"]?.getConfig()?.appBaseWithTenant;
     }
 
     /**
@@ -116,7 +116,7 @@ export class AppConstants {
      * @return {string}
      */
     public static getAppBasename(): string {
-        return window["AppUtils"].getConfig().appBase;
+        return window["AppUtils"]?.getConfig()?.appBase;
     }
 
     /**
@@ -134,7 +134,7 @@ export class AppConstants {
      * @return {string}
      */
     public static getAppHomePath(): string {
-        return window["AppUtils"].getConfig().routes.home;
+        return window["AppUtils"]?.getConfig()?.routes.home;
     }
 
     /**
@@ -143,7 +143,7 @@ export class AppConstants {
      * @return {string}
      */
     public static getAppLoginPath(): string {
-        return window[ "AppUtils" ].getConfig().routes.login;
+        return window[ "AppUtils" ]?.getConfig()?.routes.login;
     }
 
     /**
@@ -152,7 +152,7 @@ export class AppConstants {
      * @return {string}
      */
     public static getAppLogoutPath(): string {
-        return window[ "AppUtils" ].getConfig().routes.logout;
+        return window[ "AppUtils" ]?.getConfig()?.routes.logout;
     }
 
     /**
@@ -161,7 +161,7 @@ export class AppConstants {
      * @return {string}
      */
     public static getClientID(): string {
-        return window["AppUtils"].getConfig().clientID;
+        return window["AppUtils"]?.getConfig()?.clientID;
     }
 
     /**
@@ -170,7 +170,7 @@ export class AppConstants {
      * @return {AppThemeConfigInterface}
      */
     public static getAppTheme(): AppThemeConfigInterface {
-        return window["AppUtils"].getConfig().ui?.theme;
+        return window["AppUtils"]?.getConfig()?.ui?.theme;
     }
 
     /**
@@ -180,7 +180,7 @@ export class AppConstants {
      */
     public static getMyAccountPath(): string {
 
-        return window[ "AppUtils" ].getConfig().accountApp.path;
+        return window[ "AppUtils" ]?.getConfig()?.accountApp.path;
     }
 
     /**
@@ -189,7 +189,7 @@ export class AppConstants {
      * @return {string}
      */
     public static getTenantPath(): string {
-        return window["AppUtils"].getConfig().tenantPath;
+        return window["AppUtils"]?.getConfig()?.tenantPath;
     }
 
     /**
@@ -198,7 +198,7 @@ export class AppConstants {
      * @return {string}
      */
     public static getTenant(): string {
-        return window["AppUtils"].getConfig().tenant;
+        return window["AppUtils"]?.getConfig()?.tenant;
     }
 
     /**
@@ -207,7 +207,7 @@ export class AppConstants {
      * @return {string}
      */
     public static getSuperTenant(): string {
-        return window["AppUtils"].getConfig().superTenant;
+        return window["AppUtils"]?.getConfig()?.superTenant;
     }
 
     /**
@@ -216,7 +216,7 @@ export class AppConstants {
      * @return {string}
      */
     public static getClientOrigin(): string {
-        return window["AppUtils"].getConfig().clientOrigin;
+        return window["AppUtils"]?.getConfig()?.clientOrigin;
     }
 
     /**
@@ -225,7 +225,7 @@ export class AppConstants {
      * @return {string}
      */
     public static getClientOriginWithTenant(): string {
-        return window["AppUtils"].getConfig().clientOriginWithTenant;
+        return window["AppUtils"]?.getConfig()?.clientOriginWithTenant;
     }
 
     /**
@@ -241,7 +241,7 @@ export class AppConstants {
      * @return {Map<string, string>}
      */
     public static getPaths(): Map<string, string> {
-        
+
         const useNewConnectionsView: boolean = identityProviderConfig?.useNewConnectionsView;
 
         return new Map<string, string>()
@@ -284,9 +284,9 @@ export class AppConstants {
             )
             .set("LOCAL_CLAIMS", `${ AppConstants.getAdminViewBasePath() }/attributes`)
             .set("LOCAL_CLAIMS_EDIT", `${ AppConstants.getAdminViewBasePath() }/edit-attributes/:id`)
-            .set("LOGIN",  window[ "AppUtils" ].getConfig().routes.login)
+            .set("LOGIN",  window[ "AppUtils" ]?.getConfig()?.routes.login)
             .set("SCIM_MAPPING", `${ AppConstants.getAdminViewBasePath() }/attribute-mappings/scim`)
-            .set("LOGOUT",  window[ "AppUtils" ].getConfig().routes.logout)
+            .set("LOGOUT",  window[ "AppUtils" ]?.getConfig()?.routes.logout)
             .set("OIDC_SCOPES", `${ AppConstants.getAdminViewBasePath() }/oidc-scopes`)
             .set("OIDC_SCOPES_EDIT", `${ AppConstants.getAdminViewBasePath() }/oidc-scopes/:id`)
             .set("PAGE_NOT_FOUND", `${ AppConstants.getMainViewBasePath() }/404`)
@@ -295,22 +295,27 @@ export class AppConstants {
             .set("ROLES", `${ AppConstants.getAdminViewBasePath() }/roles`)
             .set("ROLE_EDIT", `${ AppConstants.getAdminViewBasePath() }/roles/:id`)
             .set("ROOT", "/")
-            .set("GOVERNANCE_CONNECTORS", `${ AppConstants.getAdminViewBasePath() }/governance-connectors/:id`)
-            .set("UNAUTHORIZED", `${ AppConstants.getMainViewBasePath() }/unauthorized`)
-            .set("USERS", `${ AppConstants.getAdminViewBasePath() }/users`)
-            .set("USER_EDIT", `${ AppConstants.getAdminViewBasePath() }/users/:id`)
-            .set("USERSTORES", `${ AppConstants.getAdminViewBasePath() }/user-stores`)
-            .set("USERSTORES_EDIT", `${ AppConstants.getAdminViewBasePath() }/edit-user-store/:id`)
-            .set("USERSTORE_TEMPLATES", `${ AppConstants.getAdminViewBasePath() }/userstore-templates`)
-            .set("STORING_DATA_DISABLED", `${ AppConstants.getMainViewBasePath() }/storing_data_disabled`)
-            .set("GOVERNANCE_CONNECTOR", `${ AppConstants.getAdminViewBasePath() }/connector/:id`)
-            .set("GOVERNANCE_CONNECTOR_EDIT", `${ 
-                AppConstants.getAdminViewBasePath() }/connector/:categoryId/:connectorId`)
-            .set("SECRETS", `${ AppConstants.getDeveloperViewBasePath() }/secrets`)
-            .set("SECRET_EDIT", `${ AppConstants.getDeveloperViewBasePath() }/secrets/:type/:name`)
-            .set("ATTRIBUTE_MAPPINGS", `${ AppConstants.getAdminViewBasePath() }/attribute-mappings/:type`)
-            .set("CREATE_TENANT", `${ AppConstants.getMainViewBasePath() }/create-tenant`);
-            
+            .set("GOVERNANCE_CONNECTORS", `${AppConstants.getAdminViewBasePath()}/governance-connectors/:id`)
+            .set("UNAUTHORIZED", `${AppConstants.getMainViewBasePath()}/unauthorized`)
+            .set("USERS", `${AppConstants.getAdminViewBasePath()}/users`)
+            .set("USER_EDIT", `${AppConstants.getAdminViewBasePath()}/users/:id`)
+            .set("USERSTORES", `${AppConstants.getAdminViewBasePath()}/user-stores`)
+            .set("USERSTORES_EDIT", `${AppConstants.getAdminViewBasePath()}/edit-user-store/:id`)
+            .set("USERSTORE_TEMPLATES", `${AppConstants.getAdminViewBasePath()}/userstore-templates`)
+            .set("STORING_DATA_DISABLED", `${AppConstants.getMainViewBasePath()}/storing_data_disabled`)
+            .set("GOVERNANCE_CONNECTOR", `${AppConstants.getAdminViewBasePath()}/connector/:id`)
+            .set(
+                "GOVERNANCE_CONNECTOR_EDIT",
+                `${AppConstants.getAdminViewBasePath()}/connector/:categoryId/:connectorId`
+            )
+            .set("SECRETS", `${AppConstants.getDeveloperViewBasePath()}/secrets`)
+            .set("SECRET_EDIT", `${AppConstants.getDeveloperViewBasePath()}/secrets/:type/:name`)
+            .set("ATTRIBUTE_MAPPINGS", `${AppConstants.getAdminViewBasePath()}/attribute-mappings/:type`)
+            .set("CREATE_TENANT", `${AppConstants.getMainViewBasePath()}/create-tenant`)
+            .set("ORGANIZATIONS", `${AppConstants.getAdminViewBasePath()}/organizations`)
+            .set("ORGANIZATION_UPDATE", `${AppConstants.getAdminViewBasePath()}/organizations/:id`)
+            .set("ORGANIZATION_ROLES", `${AppConstants.getAdminViewBasePath()}/organization-roles`)
+            .set("ORGANIZATION_ROLE_UPDATE", `${AppConstants.getAdminViewBasePath()}/organization-roles/:id`);
     }
 
     /**
@@ -339,4 +344,50 @@ export class AppConstants {
         .set("NO_LOGIN_PERMISSION", "no_login_permission")
         .set("ACCESS_DENIED", "access_denied")
         .set("USER_DENIED_CONSENT", "consent_denied");
+
+    /**
+     * Route ids that are enabled in an organization.
+     * @constant
+     * @type {string[]}
+     * @default
+     * */
+    public static readonly ORGANIZATION_ENABLED_ROUTES: string[] = [
+        "identityProviders",
+        "users",
+        "organizations",
+        "groups",
+        "organization-roles",
+        "applications"
+    ];
+
+    /**
+     * Organization-management-related route ids
+     *
+     * @constant
+     * @type {string[]}
+     * @default
+     */
+    public static readonly ORGANIZATION_ROUTES: string[] = [
+        "organizations",
+        "organization-roles",
+        "organization-edit"
+    ];
+
+    /**
+     * Route ids that are enabled in only for an organizations (Not allowed in root organization).
+     * @constant
+     * @type {string[]}
+     * @default
+     */
+    public static readonly ORGANIZATION_ONLY_ROUTES: string[] = [
+        "organization-roles"
+    ]
+
+    /**
+     * Name of the root node
+     * @constant
+     * @type {string}
+     * @default
+     */
+    public static readonly PERMISSIONS_ROOT_NODE: string = "All Permissions";
 }

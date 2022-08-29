@@ -21,6 +21,7 @@ import { AlertLevels, ReferableComponentInterface, TestableComponentInterface } 
 import { addAlert } from "@wso2is/core/store";
 import { CommonUtils } from "@wso2is/core/utils";
 import { EmphasizedSegment, PageLayout } from "@wso2is/react-components";
+import camelCase from "lodash-es/camelCase";
 import React, { FunctionComponent, ReactElement, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useDispatch, useSelector } from "react-redux";
@@ -81,9 +82,9 @@ export const GovernanceConnectorsPage: FunctionComponent<GovernanceConnectorsPag
         loadCategoryConnectors();
     }, []);
 
+    const path: string[] = history.location.pathname.split("/");
+    const categoryId: string = (path.length > 0) ? path[ path.length - 1 ] : "";
     const loadCategoryConnectors = () => {
-        const path = history.location.pathname.split("/");
-        const categoryId = path[ path.length - 1 ];
 
         getConnectorCategory(categoryId)
             .then((response: GovernanceConnectorCategoryInterface) => {
@@ -134,14 +135,21 @@ export const GovernanceConnectorsPage: FunctionComponent<GovernanceConnectorsPag
 
     return (
         <PageLayout
-            title={ serverConfigurationConfig.showPageHeading && connectorCategory?.name }
+            title={ (serverConfigurationConfig.showPageHeading && connectorCategory?.name) && 
+                t("console:manage.features.governanceConnectors.connectorCategories." 
+                    + camelCase(connectorCategory?.name) + ".name") }
+            pageTitle={ serverConfigurationConfig.showPageHeading && connectorCategory?.name }
             description={
                 serverConfigurationConfig.showPageHeading && (connectorCategory?.description
                     ? connectorCategory.description
                     : connectorCategory?.name
                     && t("console:manage.features.governanceConnectors.connectorSubHeading", {
-                        name: connectorCategory.name
-                    }))
+                        name: 
+                        categoryId === ServerConfigurationsConstants.OTHER_SETTINGS_CONNECTOR_CATEGORY_ID 
+                            ? connectorCategory.name.split(" ")[0] 
+                            : connectorCategory.name 
+                    })
+                )
             }
             data-testid={ `${testId}-page-layout` }
         >

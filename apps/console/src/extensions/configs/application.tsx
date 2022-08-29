@@ -16,19 +16,26 @@
  * under the License.
  */
 
-import { ReactNode } from "react";
+import { ReactElement, ReactNode } from "react";
 import { ApplicationConfig } from "./models";
 import {
     ExtendedClaimInterface,
     ExtendedExternalClaimInterface,
     SelectedDialectInterface
 } from "../../features/applications/components/settings";
+import { ApplicationInterface, ApplicationTabTypes } from "../../features/applications/models";
 
 export const applicationConfig: ApplicationConfig = {
     advancedConfigurations: {
         showEnableAuthorization: true,
+        showMyAccount: false,
         showReturnAuthenticatedIdPs: true,
         showSaaS: true
+    },
+    generalSettings: {
+        getFieldReadOnlyStatus: (application: ApplicationInterface, fieldName: string): boolean => {
+            return false;
+        }
     },
     attributeSettings: {
         advancedAttributeSettings: {
@@ -57,19 +64,49 @@ export const applicationConfig: ApplicationConfig = {
         roleMapping: true
     },
     customApplication: {
-        allowedProtocolTypes: []
+        allowedProtocolTypes: [],
+        defaultTabIndex: 0
     },
     editApplication: {
         extendTabs: false,
+        getActions: (_clientId: string, _tenant: string, _testId: string) => {
+            return null;
+        },
+        // TODO: Move the default to the usage
+        getOveriddenTab: (_clientId: string, _tabName: ApplicationTabTypes,
+            defaultComponent: ReactElement, _appName: string, _appId: string, _tenantDomain: string) => {
+            return defaultComponent;
+        },
+        getOverriddenDescription: (_clientId: string, _templateName: string, _tenantDomain: string) => {
+            return null;
+        },
+        getOverriddenImage: (_clientId: string, _tenantDomain: string) => {
+            return null;
+        },
+        isTabEnabledForApp: (_clientId: string, _tabType: ApplicationTabTypes, _tenantDomain: string): boolean => {
+            return true;
+        },
         renderHelpPanelItems: (): ReactNode => {
             return null;
         },
-        showProvisioningSettings: true
+        showProvisioningSettings: true,
+        showDangerZone: (application: ApplicationInterface): boolean => {
+            return true;
+        },
+        showDeleteButton: (application: ApplicationInterface): boolean => {
+            return true;
+        },
+        getTabPanelReadOnlyStatus: (tabPanelName: string, applicationName: ApplicationInterface): boolean => {
+            return false;
+        },
+        showApplicationShare: true
     },
     excludeIdentityClaims: false,
     excludeSubjectClaim: false,
     inboundOIDCForm: {
-        disabledGrantTypes: [],
+        disabledGrantTypes: {
+            "custom-application": []
+        },
         shouldValidateCertificate: true,
         showBackChannelLogout: true,
         showCertificates: true,
@@ -96,7 +133,8 @@ export const applicationConfig: ApplicationConfig = {
                 secondFactorDisabled: null,
                 secondFactorDisabledInFirstStep: null
             }
-        }
+        },
+        identifierFirstWarning: false
     },
     templates: {
         android: true,

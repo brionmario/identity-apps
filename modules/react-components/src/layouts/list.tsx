@@ -26,8 +26,7 @@ import {
     DropdownProps,
     Grid,
     Icon,
-    PaginationProps,
-    Popup
+    PaginationProps
 } from "semantic-ui-react";
 import { Pagination, PaginationPropsInterface } from "../components";
 
@@ -58,7 +57,7 @@ export interface ListLayoutPropsInterface extends PaginationProps, IdentifiableC
      */
     listItemLimit?: number;
     /**
-     * Flag to enable pagination minimal mode. 
+     * Flag to enable pagination minimal mode.
      */
     minimalPagination?: boolean;
     /**
@@ -120,6 +119,10 @@ export interface ListLayoutPropsInterface extends PaginationProps, IdentifiableC
      * @param {DropdownProps} data - Data.
      */
     onItemsPerPageDropdownChange?: (event: React.SyntheticEvent<HTMLElement>, data: DropdownProps) => void;
+    /**
+     * Active page.
+     */
+    activePage?: number;
 }
 
 /**
@@ -154,6 +157,7 @@ export const ListLayout: FunctionComponent<PropsWithChildren<ListLayoutPropsInte
         sortStrategy,
         totalListSize,
         totalPages,
+        activePage,
         [ "data-componentid" ]: componentId,
         [ "data-testid" ]: testId
     } = props;
@@ -212,32 +216,29 @@ export const ListLayout: FunctionComponent<PropsWithChildren<ListLayoutPropsInte
                                                             data-componentid={ `${ componentId }-sort` }
                                                             data-testid={ `${ testId }-sort` }
                                                         />
-                                                        <Popup
-                                                            trigger={ (
-                                                                <Button
-                                                                    icon
-                                                                    onClick={ () => {
-                                                                        setIsAscending(!isAscending);
-                                                                        onSortOrderChange(!isAscending);
-                                                                    } }
-                                                                    className="left-aligned-action"
-                                                                >
-                                                                    <Icon
-                                                                        name={
-                                                                            isAscending
-                                                                                ? "sort amount down"
-                                                                                : "sort amount up"
-                                                                        }
-                                                                    />
-                                                                </Button>
-                                                            ) }
-                                                            content={
-                                                                isAscending
-                                                                    ? "Sort in the descending order"
-                                                                    : "Sort in the ascending order"
+                                                        <Button
+                                                            data-tooltip={ 
+                                                                isAscending 
+                                                                    ? "Sort in the descending order" 
+                                                                    : "Sort in the ascending order" 
                                                             }
-                                                            inverted
-                                                        />
+                                                            data-position="top right"
+                                                            data-inverted=""
+                                                            icon
+                                                            onClick={ () => {
+                                                                setIsAscending(!isAscending);
+                                                                onSortOrderChange(!isAscending);
+                                                            } }
+                                                            className="left-aligned-action"
+                                                        >
+                                                            <Icon
+                                                                name={
+                                                                    isAscending
+                                                                        ? "sort amount down"
+                                                                        : "sort amount up"
+                                                                }
+                                                            />
+                                                        </Button>
                                                     </div>
                                                 )
                                             }
@@ -253,7 +254,7 @@ export const ListLayout: FunctionComponent<PropsWithChildren<ListLayoutPropsInte
             <div className="list-container">
                 { children }
                 {
-                    (showPagination && totalListSize)
+                    (showPagination)
                         ? (
                             <Pagination
                                 minimal={ minimalPagination }
@@ -265,7 +266,9 @@ export const ListLayout: FunctionComponent<PropsWithChildren<ListLayoutPropsInte
                                 totalPages={ totalPages }
                                 onPageChange={ onPageChange }
                                 onItemsPerPageDropdownChange={ onItemsPerPageDropdownChange }
+                                hidden={ totalListSize === 0 || totalListSize === undefined }
                                 { ...paginationOptions }
+                                activePage={ activePage }
                             />
                         )
                         : null

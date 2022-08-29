@@ -16,7 +16,6 @@
  * under the License
  */
 
-import { updateProfileImageURL } from "@wso2is/core/api";
 import { ProfileConstants } from "@wso2is/core/constants";
 import {
     getUserNameWithoutDomain,
@@ -36,10 +35,10 @@ import React, { FunctionComponent, MouseEvent, ReactElement, useEffect, useState
 import { Trans, useTranslation } from "react-i18next";
 import { useDispatch, useSelector } from "react-redux";
 import { DropdownItemProps, Form, Grid, Icon, List, Placeholder, Popup, Responsive } from "semantic-ui-react";
-import { updateProfileInfo } from "../../api";
+import { updateProfileImageURL, updateProfileInfo } from "../../api";
 import { AppConstants, CommonConstants } from "../../constants";
 import * as UIConstants from "../../constants/ui-constants";
-import { commonConfig } from "../../extensions";
+import { commonConfig, profileConfig } from "../../extensions";
 import { AlertInterface, AlertLevels, AuthStateInterface, FeatureConfigInterface, ProfileSchema } from "../../models";
 import { AppState } from "../../store";
 import { getProfileInformation, setActiveForm } from "../../store/actions";
@@ -133,6 +132,7 @@ export const Profile: FunctionComponent<ProfileProps> = (props: ProfileProps): R
      */
     useEffect(() => {
         const sortedSchemas = ProfileUtils.flattenSchemas([ ...profileDetails.profileSchemas ])
+            .filter(item => item.name !== ProfileConstants?.SCIM2_SCHEMA_DICTIONARY.get("META_VERSION")) 
             .sort((a: ProfileSchema, b: ProfileSchema) => {
                 if (!a.displayOrder) {
                     return -1;
@@ -731,11 +731,19 @@ export const Profile: FunctionComponent<ProfileProps> = (props: ProfileProps): R
                                                                     "myAccount:components.profile.forms.emailChangeForm." +
                                                                 "inputs.email.validations.invalidFormat"
                                                                 ));
-                                                            } else if (checkSchemaType(schema.name, "phoneNumbers")) {
+                                                            } else if (checkSchemaType(schema.name, ProfileConstants.
+                                                                SCIM2_SCHEMA_DICTIONARY.get("PHONE_NUMBERS"))) {
                                                                 validation.errorMessages.push(t(
-                                                                    "myAccount:components.profile.forms.mobileChangeForm." +
-                                                                "inputs.mobile.validations.invalidFormat"
-                                                                ));
+                                                                    profileConfig?.attributes?.
+                                                                        getRegExpValidationError(
+                                                                            ProfileConstants.SCIM2_SCHEMA_DICTIONARY
+                                                                                .get("PHONE_NUMBERS")
+                                                                        ), 
+                                                                    {
+                                                                        fieldName
+                                                                    }
+                                                                )
+                                                                );
                                                             } else if (checkSchemaType(schema.name,
                                                                 ProfileConstants.SCIM2_SCHEMA_DICTIONARY.get("DOB"))) {
                                                                 validation.errorMessages.push(t(
@@ -756,8 +764,7 @@ export const Profile: FunctionComponent<ProfileProps> = (props: ProfileProps): R
                                                         // Validate date format and the date is before the current date
                                                         } else if(checkSchemaType(schema.name,
                                                             ProfileConstants.SCIM2_SCHEMA_DICTIONARY.get("DOB"))){
-                                                            if (!moment(value, "YYYY-MM-DD",true).isValid() 
-                                                            || moment().isBefore(value)) {
+                                                            if (!moment(value, "YYYY-MM-DD",true).isValid()) {
                                                                 validation.isValid = false;
                                                                 validation.errorMessages
                                                                     .push(t("myAccount:components.profile.forms."
@@ -765,6 +772,16 @@ export const Profile: FunctionComponent<ProfileProps> = (props: ProfileProps): R
                                                                     + "invalidFormat", {
                                                                         field: fieldName
                                                                     }));
+                                                            } else {
+                                                                if (moment().isBefore(value)) {
+                                                                    validation.isValid = false;
+                                                                    validation.errorMessages
+                                                                        .push(t("myAccount:components.profile.forms."
+                                                                        + "dateChangeForm.inputs.date.validations."
+                                                                        + "futureDateError", {
+                                                                            field: fieldName
+                                                                        }))
+                                                                }
                                                             }
                                                         }
                                                     } }
@@ -909,6 +926,7 @@ export const Profile: FunctionComponent<ProfileProps> = (props: ProfileProps): R
                             <List.Content floated="right">
                                 { !CommonUtils.isProfileReadOnly(isReadOnlyUser)
                                 && schema.mutability !== ProfileConstants.READONLY_SCHEMA
+                                && schema.name !== ProfileConstants.SCIM2_SCHEMA_DICTIONARY.get("USERNAME")
                                 && !isEmpty(profileInfo.get(schema.name))
                                 && hasRequiredScopes(featureConfig?.personalInfo,
                                     featureConfig?.personalInfo?.scopes?.update, allowedScopes)

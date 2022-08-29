@@ -17,7 +17,6 @@
  */
 
 import { AccessControlConstants, Show } from "@wso2is/access-control";
-import { getRolesList, getUserStoreList } from "@wso2is/core/api";
 import { AlertInterface, AlertLevels, RoleListInterface, RolesInterface } from "@wso2is/core/models";
 import { addAlert } from "@wso2is/core/store";
 import { ListLayout, PageLayout, PrimaryButton } from "@wso2is/react-components";
@@ -26,8 +25,10 @@ import React, { ReactElement, SyntheticEvent, useEffect, useState } from "react"
 import { useTranslation } from "react-i18next";
 import { useDispatch } from "react-redux";
 import { Dropdown, DropdownItemProps, DropdownProps, Icon, PaginationProps } from "semantic-ui-react";
-import { AdvancedSearchWithBasicFilters, UIConstants } from "../../core";
+import { AdvancedSearchWithBasicFilters, UIConstants, store } from "../../core";
 import { CreateRoleWizard, RoleList } from "../../roles";
+import { getRolesList } from "../../roles/api";
+import { getUserStoreList } from "../../userstores/api";
 import { deleteRoleById, searchRoleList } from "../api";
 import { APPLICATION_DOMAIN, INTERNAL_DOMAIN } from "../constants";
 import { SearchRoleInterface } from "../models";
@@ -96,27 +97,12 @@ const RolesPage = (): ReactElement => {
     const [ listSortingStrategy, setListSortingStrategy ] = useState<DropdownItemProps>(ROLES_SORTING_OPTIONS[ 0 ]);
 
     useEffect(() => {
-        if (searchQuery == "") {
-            getRoles();
-        }
-    },[ initialRolList?.Resources?.length != 0 ]);
-
-    useEffect(() => {
-        getRoles();
-        setListUpdated(false);
-    }, [ isListUpdated ]);
-
-    useEffect(() => {
         getUserStores();
     }, []);
 
     useEffect(() => {
         getRoles();
-    }, [ filterBy ]);
-
-    useEffect(() => {
-        getRoles();
-    }, [ userStore ]);
+    }, [ filterBy, userStore ]);
 
     const getRoles = () => {
         setRoleListFetchRequestLoading(true);
@@ -172,7 +158,7 @@ const RolesPage = (): ReactElement => {
 
         getUserStoreList()
             .then((response) => {
-                if (storeOptions === []) {
+                if (storeOptions.length === 0) {
                     storeOptions.push(storeOption);
                 }
                 response.data.map((store, index) => {
@@ -292,7 +278,7 @@ const RolesPage = (): ReactElement => {
                     "console:manage.features.roles.notifications.deleteRole.success.message"
                 )
             });
-            setListUpdated(true);
+            getRoles();
         });
     };
 
@@ -341,6 +327,7 @@ const RolesPage = (): ReactElement => {
                 )
             }
             title={ t("console:manage.pages.roles.title") }
+            pageTitle={ t("console:manage.pages.roles.title") }
             description={ t("console:manage.pages.roles.subTitle") }
         >
             {

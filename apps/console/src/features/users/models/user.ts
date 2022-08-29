@@ -114,7 +114,7 @@ export interface UserDetailsInterface {
     emails: EmailsInterface[];
     name: NameInterface;
     userName: string;
-    password: string;
+    password?: string;
     /*
      * This wildcard declaration is done due to the issue of
      * property name in an interface must directly refer to a built-in literal in ts.
@@ -130,10 +130,10 @@ export interface UserDetailsInterface {
  * The following function creates an empty user details object
  */
 export const createEmptyUserDetails = (): UserDetailsInterface => ({
-    emails: [{
+    emails: [ {
         primary: false,
         value: ""
-    }],
+    } ],
     name: {
         familyName: "",
         givenName: ""

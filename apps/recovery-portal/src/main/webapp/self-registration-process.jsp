@@ -19,6 +19,7 @@
 
 <%@ page import="org.apache.commons.collections.map.HashedMap" %>
 <%@ page import="org.apache.commons.lang.StringUtils" %>
+<%@ page import="org.wso2.carbon.core.SameSiteCookie" %>
 <%@ page import="org.wso2.carbon.core.util.SignatureUtil" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.util.IdentityManagementEndpointConstants" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.util.IdentityManagementServiceUtil" %>
@@ -30,6 +31,8 @@
 <%@ page import="org.wso2.carbon.identity.core.util.IdentityTenantUtil" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.util.client.model.*" %>
 <%@ page import="org.wso2.carbon.identity.recovery.util.Utils" %>
+<%@ page import="org.wso2.carbon.identity.recovery.IdentityRecoveryConstants" %>
+<%@ page import="org.wso2.carbon.identity.base.IdentityRuntimeException" %>
 <%@ page import="org.json.simple.JSONObject" %>
 <%@ page import="java.io.File" %>
 <%@ page import="java.net.URLEncoder" %>
@@ -39,6 +42,7 @@
 <%@ page import="java.util.Base64" %>
 <%@ page import="org.wso2.carbon.identity.core.util.IdentityUtil" %>
 <%@ page import="javax.servlet.http.Cookie" %>
+
 <jsp:directive.include file="includes/localize.jsp"/>
 <jsp:directive.include file="tenant-resolve.jsp"/>
 
@@ -105,6 +109,23 @@
             boolean isSaaSApp = Boolean.parseBoolean(request.getParameter("isSaaSApp"));
             String policyURL = IdentityManagementServiceUtil.getInstance().getServiceContextURL().replace("/services",
                     "/authenticationendpoint/privacy_policy.do");
+
+            try {
+                if (StringUtils.isNotBlank(callback) && !Utils.validateCallbackURL(callback, tenantDomain,
+                    IdentityRecoveryConstants.ConnectorConfig.SELF_REGISTRATION_CALLBACK_REGEX)) {
+                    request.setAttribute("error", true);
+                    request.setAttribute("errorMsg", IdentityManagementEndpointUtil.i18n(recoveryResourceBundle,
+                        "Callback.url.format.invalid"));
+                    request.getRequestDispatcher("error.jsp").forward(request, response);
+                    return;
+                }
+            } catch (IdentityRuntimeException e) {
+                request.setAttribute("error", true);
+                request.setAttribute("errorMsg", e.getMessage());
+                request.getRequestDispatcher("error.jsp").forward(request, response);
+                return;
+            }
+
             if (StringUtils.isNotEmpty(consent)) {
                 consent = IdentityManagementEndpointUtil.buildConsentForResidentIDP
                         (username, consent, "USA",
@@ -233,15 +254,10 @@
                     cookieValueInJson.put("content", content);
                     String signature = Base64.getEncoder().encodeToString(SignatureUtil.doSignature(content));
                     cookieValueInJson.put("signature", signature);
-                    Cookie cookie = new Cookie(AUTO_LOGIN_COOKIE_NAME,
-                            Base64.getEncoder().encodeToString(cookieValueInJson.toString().getBytes()));
-                    cookie.setPath("/");
-                    cookie.setSecure(true);
-                    cookie.setMaxAge(300);
-                    if (StringUtils.isNotBlank(cookieDomain)) {
-                        cookie.setDomain(cookieDomain);
-                    }
-                    response.addCookie(cookie);
+                    String cookieValue = Base64.getEncoder().encodeToString(cookieValueInJson.toString().getBytes());
+
+                    IdentityManagementEndpointUtil.setCookie(request, response, AUTO_LOGIN_COOKIE_NAME, cookieValue,
+                        300, SameSiteCookie.NONE, "/", cookieDomain);
                     request.setAttribute("isAutoLoginEnabled", true);
                 }
                 request.setAttribute("callback", callback);

@@ -18,6 +18,11 @@
 
 import { MyAccountNS } from "../../../models";
 
+/**
+ * NOTES: No need to care about the max-len for this file since it's easier to
+ * translate the strings to other languages easily with editor translation tools.
+ */
+/* eslint-disable max-len */
 export const myAccount: MyAccountNS = {
     components: {
         accountRecovery: {
@@ -273,6 +278,10 @@ export const myAccount: MyAccountNS = {
                                 "Veuillez réessayer",
                             message: "Erreur lors de la modification du mot de passe"
                         },
+                        passwordCaseRequirement: "Au moins une lettre majuscule et minuscule",
+                        passwordCharRequirement: "Au moins un des symboles !@#$%^&*",
+                        passwordLengthRequirement: "Plus de 8 caractères",
+                        passwordNumRequirement: "Au moins un numéro",
                         submitError: {
                             description: "{{description}}",
                             message: "Erreur lors de la modification du mot de passe"
@@ -591,18 +600,19 @@ export const myAccount: MyAccountNS = {
         },
         mfa: {
             authenticatorApp: {
-                addHint: "Ajouter un nouveau code QR",
+                addHint: "Configurer",
                 configuredDescription: "Vous pouvez utiliser les codes TOTP de votre " +
                     "application d'authentification configurée pour une authentification à " +
                     "deux facteurs. Si vous n'avez pas accès à l'application, vous pouvez configurer " +
                     "une nouvelle application d'authentification à partir d'ici",
-                deleteHint: "Supprime le code QR",
+                deleteHint: "Retirer",
                 description: "Scannez le code QR à l'aide d'une application " +
                     "d'authentification pour utiliser des codes d'accès " +
                     "à usage unique basés sur le temps (également appelés TOTP) " +
                     "comme deuxième facteur lors de la connexion aux applications.",
+                enableHint: "Activer/désactiver l'authentificateur TOTP",
                 heading: "Application d'authentification",
-                hint: "Afficher le code QR",
+                hint: "Voir",
                 modals: {
                     delete : {
                         heading: "Confirmation",
@@ -611,7 +621,7 @@ export const myAccount: MyAccountNS = {
                     },
                     done: "Réussi ! Vous pouvez maintenant utiliser votre application d'authentification pour une " +
                         "authentification en deux étapes",
-                    heading: "Set Up An Authenticator App",
+                    heading: "Configurer une application d'authentification",
                     scan: {
                         additionNote: "Le code QR a été ajouté avec succès à votre profil",
                         authenticatorApps: "Applications d'authentification",
@@ -619,13 +629,18 @@ export const myAccount: MyAccountNS = {
                         heading: "Scannez ce code QR à l'aide d'une application d'authentification",
                         messageBody: "Vous pouvez utiliser une application d'authentification compatible dans " +
                             "cette liste :",
-                        messageHeading: "Vous n'avez pas d'application d'authentification ?"
+                        messageHeading: "Vous n'avez pas d'application d'authentification ?",
+                        regenerateConfirmLabel: "Confirmez la régénération d'un nouveau code QR",
+                        regenerateWarning: {
+                            extended: "Lorsque vous régénérez un nouveau code QR, vous devez le scanner et réinstaller votre application Authenticatrice.Vous ne pourrez plus vous connecter avec le code QR précédent.",
+                            generic: "Lorsque vous régénérez un nouveau code QR, vous devez le scanner et réinstaller votre application Authenticatrice.Votre configuration précédente ne fonctionnera plus."
+                        }
                     },
                     toolTip: "Vous n'avez pas d'application? Téléchargez une application d'authentification " +
-                        "telle que Google Authenticator depuis <3> App Store </3> ou <3> Google Play </3>",
+                        "telle que Google Authenticator depuis <1>App Store</1> ou <3>Google Play</3>",
                     verify: {
                         error: "La vérification a échoué. Veuillez réessayer.",
-                        heading: "Entrez le code de vérification fourni par l'application d'authentification",
+                        heading: "Entrez le code généré pour vérification",
                         label: "Code de vérification",
                         placeholder: "Entrez votre code de vérification",
                         reScan: "Re-scanner",
@@ -645,6 +660,10 @@ export const myAccount: MyAccountNS = {
                             message: "Quelque chose s'est mal passé"
                         }
                     },
+                    deleteSuccess: {
+                        genericMessage: "Suppression réussie",
+                        message: "La configuration TOTP a bien été supprimée."
+                    },
                     initError: {
                         error: {
                             description: "{{error}}",
@@ -662,6 +681,132 @@ export const myAccount: MyAccountNS = {
                         },
                         genericError: {
                             description: "Une erreur s'est produite lors de la récupération d'un nouveau code QR",
+                            message: "Quelque chose s'est mal passé"
+                        }
+                    },
+                    updateAuthenticatorError: {
+                        error: {
+                            description: "{{error}}",
+                            message: "Quelque chose s'est mal passé"
+                        },
+                        genericError: {
+                            description: "Une erreur s'est produite lors de la tentative de mise " + 
+                                "à jour de la liste des authentificateurs activés",
+                            message: "Quelque chose s'est mal passé"
+                        }
+                    }
+                },
+                regenerate: "Régénérer"
+            },
+            backupCode: {
+                description: "Vous pouvez utiliser des codes de secours pour vous connecter si vous " 
+                    + "ne pouvez pas recevoir de code de vérification via l'application d'authentification.",
+                download: {
+                    heading: "ENREGISTREZ VOS CODES DE SECOURS.",
+                    info1: "Vous ne pouvez utiliser chaque code de secours qu'une seule fois.",
+                    info2: "Ces codes ont été générés sur ",
+                    subHeading: "Vous pouvez utiliser ces codes de secours pour vous connecter à " + 
+                        "Asgardeo lorsque vous êtes loin de votre téléphone. Conservez ces codes " + 
+                        "de sauvegarde dans un endroit sûr mais accessible."
+                },
+                heading: "Codes de sauvegarde",
+                modals: {
+                    actions: {
+                        copied: "copié",
+                        copy: "Copier les codes",
+                        download: "Codes de téléchargement",
+                        regenerate: "Régénérer"
+                    },
+                    description: "Utilisez les codes de secours pour vous connecter lorsque vous êtes " + 
+                        "loin de votre téléphone. Vous pouvez en générer plus lorsqu'ils sont tous utilisés",
+                    generate: {
+                        description: "Tous vos codes de secours sont utilisés. " + 
+                            "Permet de générer un nouvel ensemble de codes de secours",
+                        heading: "Générer"  
+                    },
+                    heading: "Codes de sauvegarde",
+                    info: "Chaque code ne peut être utilisé qu'une seule fois",
+                    regenerate: {
+                        description: "Après avoir généré de nouveaux codes, vos anciens codes ne fonctionneront plus. " 
+                            + "Assurez-vous de sauvegarder les nouveaux codes une fois qu'ils sont générés.",
+                        heading: "Confirmation"
+                    },
+                    subHeading: "Codes d'accès à usage unique que vous pouvez utiliser pour vous connecter",
+                    warn: "Ces codes n'apparaîtront qu'une seule fois. Assurez-vous de les enregistrer " 
+                        + "maintenant et de les stocker dans un endroit sûr mais accessible."
+                },
+                notifications: {
+                    deleteError: {
+                        error: {
+                            description: "{{error}}",
+                            message: "Quelque chose s'est mal passé"
+                        },
+                        genericError: {
+                            description: "Une erreur s'est produite lors de la suppression des codes de secours",
+                            message: "Quelque chose s'est mal passé"
+                        }
+                    },
+                    downloadError: {
+                        error: {
+                            description: "{{error}}",
+                            message: "Quelque chose s'est mal passé"
+                        },
+                        genericError: {
+                            description: "Une erreur s'est produite lors de la tentative de " + 
+                                "téléchargement des codes de secours",
+                            message: "Quelque chose s'est mal passé"
+                        }
+                    },
+                    downloadSuccess: {
+                        genericMessage: {
+                            description: "Les codes de sauvegarde sont téléchargés avec succès.",
+                            message: "Les codes de sauvegarde ont été téléchargés avec succès."
+                        },
+                        message: {
+                            description: "{{message}}",
+                            message: "Les codes de sauvegarde ont été téléchargés avec succès."
+                        }
+                    },
+                    refreshError: {
+                        error: {
+                            description: "{{error}}",
+                            message: "Quelque chose s'est mal passé"
+                        },
+                        genericError: {
+                            description: "Une erreur s'est produite lors de la tentative de " + 
+                                "génération de nouveaux codes de secours",
+                            message: "Quelque chose s'est mal passé"
+                        }
+                    },
+                    retrieveAuthenticatorError: {
+                        error: {
+                            description: "{{error}}",
+                            message: "Quelque chose s'est mal passé"
+                        },
+                        genericError: {
+                            description: "Une erreur s'est produite lors de la tentative d'obtention " + 
+                                "de la liste des authentificateurs activés",
+                            message: "Quelque chose s'est mal passé"
+                        }
+                    },
+                    retrieveError: {
+                        error: {
+                            description: "{{error}}",
+                            message: "Quelque chose s'est mal passé"
+                        },
+                        genericError: {
+                            description: "Une erreur s'est produite lors de la récupération des codes de secours",
+                            message: "Quelque chose s'est mal passé"
+                        }
+                    },
+                    updateAuthenticatorError: {
+                        error: {
+                            description: "{{error}}",
+                            message: "Quelque chose s'est mal passé"
+                        },
+                        genericError: {
+                            description: "Une erreur s'est produite lors de la tentative de mise " + 
+                                "à jour de la liste des authentificateurs activés",
                             message: "Quelque chose s'est mal passé"
                         }
                     }
@@ -837,7 +982,10 @@ export const myAccount: MyAccountNS = {
                 },
                 profileStatus: {
                     completionPercentage: "Votre profil est complété à {{percentage}}%",
+                    description: "Gérez votre profil",
                     header: "Votre profil {{productName}}",
+                    profileText: "Détails de votre profil personnel",
+                    readOnlyDescription: "Afficher votre profil",
                     userSourceText: "(Connecté via {{source}})"
                 }
             }
@@ -885,7 +1033,7 @@ export const myAccount: MyAccountNS = {
                         " collection, and information about the retention of your personal information.",
                     para2:
                         "Please note that this policy is for reference only, and is applicable for the software " +
-                        "as a product. WSO2 Inc. and its developers have no access to the information held within " +
+                        "as a product. WSO2 LLC. and its developers have no access to the information held within " +
                         "WSO2 IS. Please see the <1>disclaimer</1> section for more information.",
                     para3:
                         "Entities, organizations or individuals controlling the use and administration of WSO2 IS " +
@@ -1104,6 +1252,8 @@ export const myAccount: MyAccountNS = {
                     inputs: {
                         date: {
                             validations: {
+                                futureDateError: "La date que vous avez saisie pour le champ {{field}} " + 
+                                "n'est pas valide.",
                                 invalidFormat: "Veuillez saisir un test valide au format YYYY-MM-DD."
                             }
                         }
@@ -1134,7 +1284,7 @@ export const myAccount: MyAccountNS = {
                         },
                         validations: {
                             empty: "L'attribut {{fieldName}} est obligatoire",
-                            invalidFormat: "Le format de l'attribut {{fieldName}} saisi est invalide"
+                            invalidFormat: "Le format du {{fieldName}} saisi est incorrect"
                         }
                     }
                 },
@@ -1436,6 +1586,8 @@ export const myAccount: MyAccountNS = {
             subTitle: "",
             title: "Politique de confidentialité de WSO2 Identity Server"
         },
+        readOnlyProfileBanner: "Votre profil ne peut pas être modifié depuis ce portail. Veuillez " +
+            "contacter votre administrateur pour plus de détails.",
         security: {
             subTitle: "Sécurisez votre compte en gérant les consentements, les sessions authentifiées et les " +
                 "paramètres de sécurité",

@@ -57,6 +57,7 @@ export const commonConfigReducerInitialState: CommonConfigReducerStateInterface<
             clientHost: "",
             clientID: "",
             clientOrigin: "",
+            customServerHost: "",
             developerApp: {
                 basePath: "",
                 displayName: "",
@@ -106,6 +107,7 @@ export const commonConfigReducerInitialState: CommonConfigReducerStateInterface<
             me: "",
             multiFactorAuthenticators: "",
             oidcScopes: "",
+            organizations: "",
             passwordHistory: "",
             passwordPolicies: "",
             passwordPolicy: "",
@@ -113,7 +115,10 @@ export const commonConfigReducerInitialState: CommonConfigReducerStateInterface<
             publicCertificates: "",
             requestPathAuthenticators: "",
             roles: "",
+            rolesWithoutOrgPath: "",
+            rootOrganization: "",
             saml2Meta: "",
+            schemas: "",
             selfSignUp: "",
             serverConfigurations: "",
             serverSupportedSchemas: "",
@@ -122,6 +127,7 @@ export const commonConfigReducerInitialState: CommonConfigReducerStateInterface<
             userSessions: "",
             userStores: "",
             users: "",
+            usersSuperOrganization: "",
             wellKnown: ""
         },
         features: {
@@ -166,9 +172,9 @@ export const commonConfigReducerInitialState: CommonConfigReducerStateInterface<
                 users: null
             },
             gravatarConfig: {
-                size: null,
                 defaultImage: "",
-                fallback: null
+                fallback: null,
+                size: null
             },
             hiddenAuthenticators: [],
             hiddenUserStores: [],
@@ -184,10 +190,10 @@ export const commonConfigReducerInitialState: CommonConfigReducerStateInterface<
                 facebook: {
                     enabled: false
                 },
-                google: {
+                github: {
                     enabled: false
                 },
-                github: {
+                google: {
                     enabled: false
                 }
             },

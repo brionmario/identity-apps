@@ -17,7 +17,6 @@
  */
 
 import { AuthenticatedUserInfo, useAuthContext } from "@asgardeo/auth-react";
-import { getProfileSchemas } from "@wso2is/core/api";
 import { AppConstants as CommonAppConstants } from "@wso2is/core/constants";
 import { AuthenticateUtils } from "@wso2is/core/utils";
 import { I18n } from "@wso2is/i18n";
@@ -26,7 +25,7 @@ import { getProfileLinkedAccounts } from ".";
 import { addAlert } from "./global";
 import { setProfileInfoLoader, setProfileSchemaLoader } from "./loaders";
 import { AuthAction, authenticateActionTypes } from "./types";
-import { getProfileInfo, getUserReadOnlyStatus, switchAccount } from "../../api";
+import { getProfileInfo, getProfileSchemas, getUserReadOnlyStatus, switchAccount } from "../../api";
 // Keep statement as this to avoid cyclic dependency. Do not import from config index.
 import { SCIMConfigs } from "../../extensions/configs/scim";
 import { history } from "../../helpers";
@@ -37,9 +36,7 @@ import {
     ProfileSchema,
     ReadOnlyUserStatus
 } from "../../models";
-import {
-    getProfileCompletion
-} from "../../utils";
+import { getProfileCompletion, toBoolean } from "../../utils";
 import { store } from "../index";
 
 /**
@@ -95,8 +92,11 @@ export const setInitialized = (flag: boolean): AuthAction => ({
 /**
  * Get SCIM2 schemas
  */
-export const getScimSchemas = (profileInfo: BasicProfileInterface = null,
-                               isReadOnlyUser: boolean) => (dispatch): void => {
+export const getScimSchemas = (
+    profileInfo: BasicProfileInterface = null,
+    isReadOnlyUser: boolean
+) => (dispatch): void => {
+
     dispatch(setProfileSchemaLoader(true));
 
     getProfileSchemas()
@@ -118,6 +118,7 @@ export const getScimSchemas = (profileInfo: BasicProfileInterface = null,
  */
 export const getProfileInformation = (updateProfileCompletion = false) => (dispatch): void => {
     let isCompletionCalculated = false;
+
     dispatch(setProfileInfoLoader(true));
 
     getUserReadOnlyStatus()
@@ -129,7 +130,7 @@ export const getProfileInformation = (updateProfileCompletion = false) => (dispa
                         dispatch(
                             setProfileInfo({
                                 ...infoResponse,
-                                isReadOnly: 
+                                isReadOnly:
                                     response[SCIMConfigs.scim.customEnterpriseSchema]
                                         ?.isReadOnlyUser
                             })
@@ -138,8 +139,14 @@ export const getProfileInformation = (updateProfileCompletion = false) => (dispa
                         // If the schemas in the redux store is empty, fetch the SCIM schemas from the API.
                         if (isEmpty(store.getState().authenticationInformation.profileSchemas)) {
                             isCompletionCalculated = true;
-                            dispatch(getScimSchemas(infoResponse,
-                                response[SCIMConfigs.scim.customEnterpriseSchema]?.isReadOnlyUser));
+                            dispatch(
+                                getScimSchemas(
+                                    infoResponse,
+                                    toBoolean(
+                                        response[SCIMConfigs.scim.customEnterpriseSchema]?.isReadOnlyUser
+                                    )
+                                )
+                            );
                         }
 
                         // If `updateProfileCompletion` flag is enabled, update the profile completion.
@@ -148,8 +155,9 @@ export const getProfileInformation = (updateProfileCompletion = false) => (dispa
                                 getProfileCompletion(
                                     infoResponse,
                                     store.getState().authenticationInformation.profileSchemas,
-                                    response[SCIMConfigs.scim.customEnterpriseSchema]
-                                        ?.isReadOnlyUser
+                                    toBoolean(
+                                        response[SCIMConfigs.scim.customEnterpriseSchema]?.isReadOnlyUser
+                                    )
                                 );
                             } catch (e) {
                                 dispatch(
@@ -287,14 +295,8 @@ export const handleAccountSwitching = (account: LinkedAccountInterface) => (disp
     switchAccount(account)
         .then((response) => {
             dispatch(
-                setSignIn({
-                    display_name: response?.displayName,
-                    email: response?.email,
-                    scope: response?.allowedScopes,
-                    username: response?.username
-                })
+                setSignIn(AuthenticateUtils.getSignInState(response))
             );
-
             dispatch(getProfileInformation());
             dispatch(getProfileLinkedAccounts());
         })

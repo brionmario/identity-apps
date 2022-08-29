@@ -51,6 +51,8 @@ import { deleteUserStore } from "../api";
 import { getTableIcons } from "../configs";
 import { CONSUMER_USERSTORE, CONSUMER_USERSTORE_ID } from "../constants";
 import { UserStoreListItem } from "../models";
+import { userstoresConfig } from "../../../extensions";
+import isEmpty from "lodash-es/isEmpty";
 
 /**
  * Prop types of the `UserStoresList` component
@@ -160,20 +162,13 @@ export const UserStoresList: FunctionComponent<UserStoresListPropsInterface> = (
     const showDeleteConfirm = (): ReactElement => (
         <ConfirmationModal
             onClose={ closeDeleteConfirm }
-            type="warning"
+            type={ "negative" }
             open={ deleteConfirm }
             assertion={ deleteName }
             assertionHint={
-                <p>
-                    <Trans i18nKey="console:manage.features.userstores.confirmation.hint">
-                        Please type
-                        <strong data-testid={ `${ testId }-delete-confirmation-modal-assertion` }>
-                            { { name: deleteName } }
-                        </strong > to confirm.
-                    </Trans>
-                </p>
+                t("console:manage.features.userstores.confirmation.hint")
             }
-            assertionType="input"
+            assertionType={ "checkbox" }
             primaryAction={ t("common:confirm") }
             secondaryAction={ t("common:cancel") }
             onSecondaryActionClick={ closeDeleteConfirm }
@@ -221,7 +216,7 @@ export const UserStoresList: FunctionComponent<UserStoresListPropsInterface> = (
             </ConfirmationModal.Header>
             <ConfirmationModal.Message
                 attached
-                warning
+                negative
                 data-testid={ `${ testId }-delete-confirmation-modal-message` }
             >
                 { t("console:manage.features.userstores.confirmation.message") }
@@ -262,30 +257,39 @@ export const UserStoresList: FunctionComponent<UserStoresListPropsInterface> = (
         }
 
         if (list?.length === 0) {
-            return (
-                <EmptyPlaceholder
-                    action={ (
-                        <PrimaryButton onClick={ onEmptyListPlaceholderActionClick }>
-                            <Icon name="add" />
-                            { t("console:manage.features.userstores.placeholders.emptyList.action") }
-                        </PrimaryButton>
-                    ) }
-                    image={ getEmptyPlaceholderIllustrations().newList }
-                    imageSize="tiny"
-                    title={ t("console:manage.features.userstores.placeholders.emptyList.title") }
-                    subtitle={ [
-                        t("console:manage.features.userstores.placeholders.emptyList.subtitles")
-                    ] }
-                    data-testid={ `${ testId }-empty-placeholder` }
-                />
-            );
+            if (!userstoresConfig.userstoreList.renderEmptyPlaceholder(onEmptyListPlaceholderActionClick)) {
+                return (
+                    <EmptyPlaceholder
+                        action={ (
+                            <PrimaryButton onClick={ onEmptyListPlaceholderActionClick }>
+                                <Icon name="add" />
+                                { t("console:manage.features.userstores.placeholders.emptyList.action") }
+                            </PrimaryButton>
+                        ) }
+                        image={ getEmptyPlaceholderIllustrations().newList }
+                        imageSize="tiny"
+                        title={ t("console:manage.features.userstores.placeholders.emptyList.title") }
+                        subtitle={ [
+                            t("console:manage.features.userstores.placeholders.emptyList.subtitles")
+                        ] }
+                        data-testid={ `${ testId }-empty-placeholder` }
+                    />
+                );
+            } else {
+                return userstoresConfig.userstoreList.renderEmptyPlaceholder(onEmptyListPlaceholderActionClick);
+            }
         }
 
         return null;
     };
 
     const handleUserstoreEdit = (userstoreId: string) => {
-        history.push(AppConstants.getPaths().get("USERSTORES_EDIT").replace(":id", userstoreId));
+        if (userstoresConfig.onUserstoreEdit(userstoreId)) {
+            history.push(AppConstants.getPaths().get("USERSTORES_EDIT").replace(":id", userstoreId));
+        } else {
+            history.push(AppConstants.getPaths().get("USERSTORES_EDIT").replace(":id", userstoreId).replace(
+                "edit-user-store", userstoresConfig.userstoreEdit.remoteUserStoreEditPath));
+        }
     };
 
     /**

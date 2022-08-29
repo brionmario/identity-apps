@@ -18,6 +18,11 @@
 
 import { MyAccountNS } from "../../../models";
 
+/**
+ * NOTES: No need to care about the max-len for this file since it's easier to
+ * translate the strings to other languages easily with editor translation tools.
+ */
+/* eslint-disable max-len */
 export const myAccount: MyAccountNS = {
     components: {
         accountRecovery: {
@@ -263,6 +268,7 @@ export const myAccount: MyAccountNS = {
                         }
                     },
                     validations: {
+
                         genericError: {
                             description: "Something went wrong. Please try again",
                             message: "Change password error"
@@ -271,6 +277,10 @@ export const myAccount: MyAccountNS = {
                             description: "The current password you entered appears to be invalid. Please try again",
                             message: "Change password error"
                         },
+                        passwordCaseRequirement: "At least one uppercase and lowercase letter",
+                        passwordCharRequirement: "At least one of the symbols !@#$%^&*",
+                        passwordLengthRequirement: "More than 8 characters",
+                        passwordNumRequirement: "At least one number",
                         submitError: {
                             description: "{{description}}",
                             message: "Change password error"
@@ -579,36 +589,41 @@ export const myAccount: MyAccountNS = {
         },
         mfa: {
             authenticatorApp: {
-                addHint:"Adds new QR code",
+                addHint:"Configure",
                 configuredDescription: "You can use TOTP codes from your configured " +
                     "authenticator app for two-factor authentication. If you don't have " +
                     "access to the application you can set up a new authenticator app from here.",
-                deleteHint: "Deletes QR code",
-                description: " Scan the QR code using an Authenticator App to use " +
-                    "time-based , one-time passcodes (also known as TOTP) as a " +
-                    "second factor when logging in to applications.",
+                deleteHint: "Remove",
+                description: "You can use the authenticator app to get verification codes for " + 
+                    "two-factor authentication.",
+                enableHint: "Enable/Disable TOTP Authenticator",
                 heading: "Authenticator App",
-                hint: "Show the QR Code",
+                hint: "View",
                 modals: {
                     delete : {
                         heading: "Confirmation",
                         message: "This action will remove the QR code added to your profile. Do you wish to continue ? "
                     },
                     done: "Success! Now you can use your Authenticator App for two-factor authentication",
-                    heading: "Setup an Authenticator App",
+                    heading: "Set up an Authenticator App",
                     scan: {
                         additionNote: "QR code has been successfully added to your profile!",
                         authenticatorApps: "Authenticator Apps",
                         generate: "Generate a new code",
                         heading: "Scan the QR code below using an authenticator app",
                         messageBody: "You can find a list of Authenticator Apps available here.",
-                        messageHeading: "Don't have an Authenticator App installed?"
+                        messageHeading: "Don't have an Authenticator App installed?",
+                        regenerateConfirmLabel: "Confirm regenerating a new QR code",
+                        regenerateWarning: {
+                            extended: "When you regenerate a new QR code, you must scan it and re-setup your authenticator app. You won't be able to login with the previous QR code anymore.",
+                            generic: "When you regenerate a new QR code, you must scan it and re-setup your authenticator app. Your previous setup won't work anymore."
+                        }
                     },
-                    toolTip: "Don't have an app? Download an authenticator application like " +
-                        "Google Authenticator from <3>App Store</3> or <3>Google Play</3>",
+                    toolTip: "Don't have an authenticator app? Download an authenticator app like " +
+                        "Google Authenticator from <1>App Store</1> or <3>Google Play</3>",
                     verify: {
                         error: "Verification failed. Please try again.",
-                        heading: "Enter the generated code to verify",
+                        heading: "Enter the generated code for verification",
                         label: "Verification Code",
                         placeholder: "Enter your verification code",
                         reScan: "Re-scan",
@@ -627,6 +642,10 @@ export const myAccount: MyAccountNS = {
                             message: "Something went wrong"
                         }
                     },
+                    deleteSuccess: {
+                        genericMessage: "Successfully removed",
+                        message: "Successfully removed TOTP configuration."
+                    },
                     initError: {
                         error: {
                             description: "{{error}}",
@@ -644,6 +663,124 @@ export const myAccount: MyAccountNS = {
                         },
                         genericError: {
                             description: "An error occurred while trying to get a new QR code",
+                            message: "Something went wrong"
+                        }
+                    },
+                    updateAuthenticatorError: {
+                        error: {
+                            description: "{{error}}",
+                            message: "Something went wrong"
+                        },
+                        genericError: {
+                            description: "An error occurred while trying to update the enabled authenticator list",
+                            message: "Something went wrong"
+                        }
+                    }
+                },
+                regenerate: "Regenerate"
+            },
+            backupCode: {
+                description: "Use backup codes when you don’t have access to your authenticator app. You can " + 
+                    "regenerate new codes if required.",
+                download: {
+                    heading: "Backup codes for {{productName}}",
+                    info1: "You can only use each backup code once.",
+                    info2: "These codes were generated on ",
+                    subHeading: "You can use these backup codes to sign in to {{productName}} when you are " + 
+                        "away from your phone. Keep these backup codes somewhere safe but accessible."  
+                },
+                heading: "Backup Codes",
+                modals: {
+                    actions: {
+                        copied: "Copied",
+                        copy: "Copy Codes",
+                        download: "Download Codes",
+                        regenerate: "Regenerate"
+                    },
+                    description: "Use backup codes to sign in when you are away from your phone.",
+                    generate: {
+                        description: "All of your backup codes are used. Lets generate a new set of backup codes",
+                        heading: "Generate"
+                    },
+                    heading: "Backup Codes",
+                    info: "Each code can only be used once. You can generate new codes at any time to replace these.",
+                    regenerate: {
+                        description: "After you generate new codes, your old codes will no longer work. " 
+                            + "Be sure to save the new codes once they are generated.",
+                        heading: "Confirmation"
+                    },
+                    subHeading: "One-time passcodes that you can use to sign in",
+                    warn: "These codes will appear only once. Be sure to save them now and store " 
+                        + "them somewhere safe but accessible."
+                },
+                notifications: {
+                    deleteError: {
+                        error: {
+                            description: "{{error}}",
+                            message: "Something went wrong"
+                        },
+                        genericError: {
+                            description: "Error occurred while deleting backup codes",
+                            message: "Something went wrong"
+                        }
+                    },
+                    downloadError: {
+                        error: {
+                            description: "{{error}}",
+                            message: "Something went wrong"
+                        },
+                        genericError: {
+                            description: "An error occurred while trying to download backup codes",
+                            message: "Something went wrong"
+                        }
+                    },
+                    downloadSuccess: {
+                        genericMessage: {
+                            description: "The backup codes are successfully downloaded.",
+                            message: "Backup codes downloaded successfully."
+                        },
+                        message: {
+                            description: "{{message}}",
+                            message: "Backup codes downloaded successfully."
+                        }
+                    },
+                    refreshError: {
+                        error: {
+                            description: "{{error}}",
+                            message: "Something went wrong"
+                        },
+                        genericError: {
+                            description: "An error occurred while trying to genetare new backup codes",
+                            message: "Something went wrong"
+                        }
+                    },
+                    retrieveAuthenticatorError: {
+                        error: {
+                            description: "{{error}}",
+                            message: "Something went wrong"
+                        },
+                        genericError: {
+                            description: "An error occurred while trying to get the enabled authenticator list",
+                            message: "Something went wrong"
+                        }
+                    },
+                    retrieveError: {
+                        error: {
+                            description: "{{error}}",
+                            message: "Something went wrong"
+                        },
+                        genericError: {
+                            description: "An error occurred while retrieving backup codes",
+                            message: "Something went wrong"
+                        }
+                    },
+                    updateAuthenticatorError: {
+                        error: {
+                            description: "{{error}}",
+                            message: "Something went wrong"
+                        },
+                        genericError: {
+                            description: "An error occurred while trying to update the enabled authenticator list",
                             message: "Something went wrong"
                         }
                     }
@@ -808,7 +945,10 @@ export const myAccount: MyAccountNS = {
                 },
                 profileStatus: {
                     completionPercentage: "Your profile completion is at {{percentage}}%",
+                    description: "Manage your profile",
                     header: "Your {{productName}} Profile",
+                    profileText: "Details of your personal profile",
+                    readOnlyDescription: "View your profile",
                     userSourceText: "(Signed up via {{source}})"
                 }
             }
@@ -856,7 +996,7 @@ export const myAccount: MyAccountNS = {
                         " collection, and information about the retention of your personal information.",
                     para2:
                         "Please note that this policy is for reference only, and is applicable for the software " +
-                        "as a product. WSO2 Inc. and its developers have no access to the information held within " +
+                        "as a product. WSO2 LLC. and its developers have no access to the information held within " +
                         "WSO2 IS. Please see the <1>disclaimer</1> section for more information.",
                     para3:
                         "Entities, organizations or individuals controlling the use and administration of WSO2 IS " +
@@ -1075,6 +1215,7 @@ export const myAccount: MyAccountNS = {
                     inputs: {
                         date: {
                             validations: {
+                                futureDateError: "The date you entered for the {{field}} field is invalid.",
                                 invalidFormat: "Please enter a valid {{fieldName}} in the format YYYY-MM-DD."
                             }
                         }
@@ -1105,7 +1246,7 @@ export const myAccount: MyAccountNS = {
                         },
                         validations: {
                             empty: "{{fieldName}} is a required field",
-                            invalidFormat: "The {{fieldName}} is not of the correct format"
+                            invalidFormat: "The format of the {{fieldName}} entered is incorrect"   
                         }
                     }
                 },
@@ -1399,6 +1540,8 @@ export const myAccount: MyAccountNS = {
             subTitle: "",
             title: "WSO2 Identity Server Privacy Policy"
         },
+        readOnlyProfileBanner: "Your profile cannot be modified from this portal. " +
+            "Please contact your administrator for more details.",
         security: {
             subTitle: "Secure your account by managing consents, sessions, and security settings",
             title: "Security"

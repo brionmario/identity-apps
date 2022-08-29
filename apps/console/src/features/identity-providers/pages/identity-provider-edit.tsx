@@ -27,11 +27,20 @@ import {
     PageLayout
 } from "@wso2is/react-components";
 import get from "lodash-es/get";
-import React, { Fragment, FunctionComponent, ReactElement, ReactNode, useEffect, useMemo, useState } from "react";
+import React, {
+    Fragment,
+    FunctionComponent,
+    ReactElement,
+    ReactNode,
+    useEffect,
+    useMemo,
+    useRef,
+    useState
+} from "react";
 import { useTranslation } from "react-i18next";
 import { useDispatch, useSelector } from "react-redux";
 import { RouteComponentProps } from "react-router";
-import { Label } from "semantic-ui-react";
+import { Label, Popup } from "semantic-ui-react";
 import { AuthenticatorExtensionsConfigInterface, identityProviderConfig } from "../../../extensions/configs";
 import {
     AppConstants,
@@ -83,6 +92,8 @@ const IdentityProviderEditPage: FunctionComponent<IDPEditPagePropsInterface> = (
     const identityProviderTemplates: IdentityProviderTemplateItemInterface[] = useSelector(
         (state: AppState) => state.identityProvider.templates);
 
+    const idpDescElement = useRef<HTMLDivElement>(null);
+
     const [
         identityProviderTemplate,
         setIdentityProviderTemplate
@@ -99,12 +110,30 @@ const IdentityProviderEditPage: FunctionComponent<IDPEditPagePropsInterface> = (
     const [ useNewConnectionsView, setUseNewConnectionsView ] = useState<boolean>(undefined);
     const featureConfig: FeatureConfigInterface = useSelector((state: AppState) => state.config.ui.features);
     const allowedScopes: string = useSelector((state: AppState) => state?.auth?.allowedScopes);
+    const [ isDescTruncated, setIsDescTruncated ] = useState<boolean>(false);
 
     const isReadOnly = useMemo(() => (
         !hasRequiredScopes(
             featureConfig?.identityProviders, featureConfig?.identityProviders?.scopes?.update, allowedScopes)
     ), [ featureConfig, allowedScopes ]);
 
+    useEffect(() => {
+        /**
+         * What's the goal of this effect?
+         * To figure out the application's description is truncated or not.
+         *
+         * A comprehensive explanation is added in {@link ApplicationEditPage}
+         * in a similar {@link useEffect}.
+         */
+        if (idpDescElement || isConnectorDetailsFetchRequestLoading) {
+            const nativeElement = idpDescElement.current;
+
+            if (nativeElement && (nativeElement.offsetWidth < nativeElement.scrollWidth)) {
+                setIsDescTruncated(true);
+            }
+        }
+    }, [ idpDescElement, isConnectorDetailsFetchRequestLoading ]);
+    
     /**
      * Use effect for the initial component load.
      */
@@ -186,7 +215,7 @@ const IdentityProviderEditPage: FunctionComponent<IDPEditPagePropsInterface> = (
         }
 
         // TODO: Creating internal mapping to resolve the IDP template.
-        // TODO: Should be removed once template id is supported from IDP REST API
+        // TODO: First phase of the issue is fixed, keeping this for backward compatibility.
         // Tracked Here - https://github.com/wso2/product-is/issues/11023
         const resolveTemplateId = (authenticatorId: string) => {
 
@@ -209,8 +238,8 @@ const IdentityProviderEditPage: FunctionComponent<IDPEditPagePropsInterface> = (
 
         const template: IdentityProviderTemplateItemInterface = identityProviderTemplates
             .find((template: IdentityProviderTemplateItemInterface) => {
-                return template.id === resolveTemplateId(
-                    connector.federatedAuthenticators?.defaultAuthenticatorId);
+                return template.id === (connector.templateId
+                    ?? resolveTemplateId(connector.federatedAuthenticators?.defaultAuthenticatorId));
             });
 
         setIdentityProviderTemplate(template);
@@ -233,7 +262,7 @@ const IdentityProviderEditPage: FunctionComponent<IDPEditPagePropsInterface> = (
                     dispatch(addAlert({
                         description: t("console:develop.features.authenticationProvider." +
                             "notifications.getIDP.error.description",
-                            { description: error.response.data.description }),
+                        { description: error.response.data.description }),
                         level: AlertLevels.ERROR,
                         message: t("console:develop.features.authenticationProvider." +
                             "notifications.getIDP.error.message")
@@ -281,7 +310,7 @@ const IdentityProviderEditPage: FunctionComponent<IDPEditPagePropsInterface> = (
                         dispatch(addAlert({
                             description: t("console:develop.features.authenticationProvider." +
                                 "notifications.getConnectionDetails.error.description",
-                                { description: error.response.data.description }),
+                            { description: error.response.data.description }),
                             level: AlertLevels.ERROR,
                             message: t("console:develop.features.authenticationProvider." +
                                 "notifications.getConnectionDetails.error.message")
@@ -497,25 +526,46 @@ const IdentityProviderEditPage: FunctionComponent<IDPEditPagePropsInterface> = (
         if (IdentityProviderManagementUtils.isConnectorIdentityProvider(connector)) {
 
             return (
-                <div className="with-label ellipsis">
+                <div className="with-label ellipsis" ref={ idpDescElement }>
                     {
                         identityProviderTemplate?.name &&
                         <Label size="small">{ identityProviderTemplate.name }</Label>
                     }
-                    { connector.description }
+                    <Popup
+                        disabled={ !isDescTruncated }
+                        content={ connector?.description }
+                        trigger={ (
+                            <span>{ connector?.description }</span>
+                        ) }
+                    />
                 </div>
             );
         }
 
         return (
-            <div className="with-label ellipsis">
-                { connector.description || AuthenticatorMeta.getAuthenticatorDescription(connector.id) }
+            <div className="with-label ellipsis" ref={ idpDescElement }>
+                {
+                    connector?.description
+                        ? (
+                            <Popup
+                                disabled={ !isDescTruncated }
+                                content={ connector?.description }
+                                trigger={ (
+                                    <span>{ connector?.description }</span>
+                                ) }
+                            />
+                        )
+                        : AuthenticatorMeta.getAuthenticatorDescription(
+                            connector.id
+                        )
+                }
             </div>
         );
     };
 
     return (
         <PageLayout
+            pageTitle={ "Edit Connection" }
             isLoading={ isConnectorDetailsFetchRequestLoading || useNewConnectionsView === undefined }
             title={ resolveConnectorName(connector) }
             contentTopMargin={ true }

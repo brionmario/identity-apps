@@ -17,10 +17,10 @@
  */
 
 import { TestableComponentInterface } from "@wso2is/core/models";
-import { Text, LinkButton } from "@wso2is/react-components";
+import { ContentLoader, LinkButton, Text } from "@wso2is/react-components";
 import React, { Fragment, FunctionComponent } from "react";
 import { useTranslation } from "react-i18next";
-import { Button, Grid, Popup } from "semantic-ui-react";
+import { Grid, Popup } from "semantic-ui-react";
 import { ApplicationListItem } from "./application-list-item";
 import { getEmptyPlaceholderIllustrations } from "../../configs";
 import { Application } from "../../models";
@@ -112,6 +112,10 @@ export const ApplicationList: FunctionComponent<ApplicationListProps> = (
         );
     };
 
+    const truncateAppName = (appName: string): string => {
+        return appName?.substring(0, 56) + " ...";
+    };
+
     return (
         <Grid>
             <Grid.Row>
@@ -135,21 +139,24 @@ export const ApplicationList: FunctionComponent<ApplicationListProps> = (
                                         content={ (
                                             <Grid.Row>
                                                 <Grid.Column>
-                                                    <Text>
-                                                        { 
-                                                            app.name?.length > 55 
-                                                            ? app.name?.substring(0, 56) + " ..." 
-                                                            : app.name 
+                                                    <Text className="mb-1 mt-1">
+                                                        {
+                                                            app.name?.length > 55
+                                                                ? truncateAppName(app.name)
+                                                                : app.name
                                                         }
                                                     </Text>
                                                 </Grid.Column>
-                                                <Grid.Column>
-                                                    <Text className="hint-description">
-                                                        { 
-                                                            app.description
-                                                        }
-                                                    </Text>
-                                                </Grid.Column>
+                                                { app.description
+                                                    ? (
+                                                        <Grid.Column>
+                                                            <Text className="hint-description mb-1 mt-1">
+                                                                { app.description }
+                                                            </Text>
+                                                        </Grid.Column>
+                                                    )
+                                                    : null
+                                                }
                                             </Grid.Row>
                                         ) }
                                     />
@@ -163,6 +170,7 @@ export const ApplicationList: FunctionComponent<ApplicationListProps> = (
                             </Grid.Column>
                         )
                 }
+                { loading && <ContentLoader /> }
             </Grid.Row>
         </Grid>
     );

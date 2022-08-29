@@ -209,6 +209,10 @@ export interface MyAccountNS {
                             description: string;
                             message: string;
                         };
+                        passwordCaseRequirement: string,
+                        passwordCharRequirement: string,
+                        passwordLengthRequirement: string,
+                        passwordNumRequirement: string,
                         submitError: {
                             description: string;
                             message: string;
@@ -354,8 +358,10 @@ export interface MyAccountNS {
                 configuredDescription:string;
                 heading: string;
                 hint: string;
+                enableHint: string;
                 addHint: string;
                 deleteHint: string;
+                regenerate: string;
                 modals: {
                     heading: string;
                     scan: {
@@ -365,6 +371,11 @@ export interface MyAccountNS {
                         messageHeading: string;
                         messageBody: string;
                         authenticatorApps: string;
+                        regenerateWarning: {
+                            extended: string;
+                            generic: string;
+                        };
+                        regenerateConfirmLabel: string;
                     };
                     verify: {
                         heading: string;
@@ -395,8 +406,78 @@ export interface MyAccountNS {
                         genericError: NotificationItem;
                         error: NotificationItem;
                     };
+                    updateAuthenticatorError: {
+                        error: NotificationItem;
+                        genericError: NotificationItem;
+                    };
+                    deleteSuccess: {
+                        genericMessage: string;
+                        message: string;
+                    };
                 };
             };
+            backupCode: {
+                description: string;
+                download: {
+                    heading: string;
+                    info1: string;
+                    info2: string;
+                    subHeading: string;
+                };
+                heading: string;
+                modals: {
+                    actions: {
+                        download: string;
+                        regenerate: string;
+                        copy: string;
+                        copied: string;
+                    };
+                    description: string;
+                    generate: {
+                        description: string;
+                        heading: string;
+                    };
+                    heading: string;
+                    info: string;
+                    regenerate: {
+                        heading: string;
+                        description: string;
+                    };
+                    subHeading: string;
+                    warn: string;
+                },
+                notifications: {
+                    deleteError: {
+                        error: NotificationItem;
+                        genericError: NotificationItem;
+                    };
+                    downloadError: {
+                        error: NotificationItem;
+                        genericError: NotificationItem;
+                    };
+                    downloadSuccess: {
+                        message: NotificationItem;
+                        genericMessage: NotificationItem;
+                    };
+                    refreshError: {
+                        error: NotificationItem;
+                        genericError: NotificationItem;
+                    };
+                    retrieveAuthenticatorError: {
+                        error: NotificationItem;
+                        genericError: NotificationItem;
+                    };
+                    retrieveError: {
+                        error: NotificationItem;
+                        genericError: NotificationItem;
+                    };
+                    updateAuthenticatorError: {
+                        error: NotificationItem;
+                        genericError: NotificationItem;
+                    };
+
+                }
+            }
         };
         loginVerifyData: {
             heading: string;
@@ -444,6 +525,9 @@ export interface MyAccountNS {
                     completionPercentage: string;
                     userSourceText: string;
                     header: string;
+                    description: string;
+                    readOnlyDescription: string;
+                    profileText:string
                 };
                 accountStatus: {
                     complete: string;
@@ -707,6 +791,7 @@ export interface MyAccountNS {
                     inputs: {
                         date: {
                             validations: {
+                                futureDateError : string;
                                 invalidFormat: string;
                             };
                         };
@@ -809,6 +894,7 @@ export interface MyAccountNS {
         personalInfoWithoutLinkedAccounts: Page;
         personalInfoWithoutExportProfile: Page;
         privacy: Page;
+        readOnlyProfileBanner: string;
         security: Page;
     };
     placeholders: {

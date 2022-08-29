@@ -16,9 +16,9 @@
  * under the License.
  */
 
-import { resolveAppLogoFilePath } from "@wso2is/core/helpers";
+import { hasRequiredScopes, resolveAppLogoFilePath } from "@wso2is/core/helpers";
 import { AnnouncementBannerInterface, ProfileInfoInterface } from "@wso2is/core/models";
-import { LocalStorageUtils, CommonUtils as ReusableCommonUtils } from "@wso2is/core/utils";
+import { LocalStorageUtils, CommonUtils as ReusableCommonUtils, StringUtils } from "@wso2is/core/utils";
 import {
     Announcement,
     AppSwitcher,
@@ -31,17 +31,19 @@ import {
 import compact from "lodash-es/compact";
 import isEmpty from "lodash-es/isEmpty";
 import sortBy from "lodash-es/sortBy";
-import React, { FunctionComponent, ReactElement, useEffect, useState } from "react";
+import React, { FunctionComponent, ReactElement, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useDispatch, useSelector } from "react-redux";
 import { Container, Menu } from "semantic-ui-react";
-import { commonConfig } from "../../../extensions";
+import { commonConfig, organizationConfigs } from "../../../extensions";
 import { getApplicationList } from "../../applications/api";
 import { ApplicationListInterface } from "../../applications/models";
+import OrganizationSwitchDropdown
+    from "../../organizations/components/organization-switch/organization-switch-dropdown";
 import { AppSwitcherIcons, getAppHeaderIcons } from "../configs";
 import { AppConstants } from "../constants";
 import { history } from "../helpers";
-import { AppViewTypes, ConfigReducerStateInterface, StrictAppViewTypes } from "../models";
+import { AppViewTypes, ConfigReducerStateInterface, FeatureConfigInterface, StrictAppViewTypes } from "../models";
 import { AppState, setActiveView } from "../store";
 import { CommonUtils, EventPublisher } from "../utils";
 
@@ -106,15 +108,44 @@ export const Header: FunctionComponent<HeaderPropsInterface> = (
     const activeView: AppViewTypes = useSelector((state: AppState) => state.global.activeView);
     const tenantDomain: string = useSelector((state: AppState) => state?.auth?.tenantDomain);
     const associatedTenants: any[] = useSelector((state: AppState) => state?.auth?.tenants);
+    const privilegedUserAccountURL: string = useSelector((state: AppState) =>
+        state.config.deployment.accountApp.tenantQualifiedPath);
+    const isPrivilegedUser: boolean = useSelector((state: AppState) => state.auth.isPrivilegedUser);
 
     const isDevelopAllowed: boolean =
         useSelector((state: AppState) => state.accessControl.isDevelopAllowed);
     const isManageAllowed: boolean =
         useSelector((state: AppState) => state.accessControl.isManageAllowed);
+    const feature: FeatureConfigInterface = useSelector((state: AppState) => state.config.ui.features);
+    const scopes = useSelector((state: AppState) => state.auth.allowedScopes);
 
     const [ announcement, setAnnouncement ] = useState<AnnouncementBannerInterface>(undefined);
 
     const eventPublisher: EventPublisher = EventPublisher.getInstance();
+
+    /**
+     * Show the organization switching dropdown only if
+     *  - the extensions config enables this
+     *  - the requires scopes are there
+     *  - the organization management feature is enabled by the backend
+     *  - the user is logged in to a non-super-tenant account
+     */
+    const isOrgSwitcherEnabled = useMemo(() => {
+        return (
+            isOrganizationManagementEnabled &&
+            // The `tenantDomain` takes the organization id when you log in to a sub-organization.
+            // So, we cannot use `tenantDomain` to check
+            // if the user is logged in to a non-super-tenant account reliably.
+            // So, we check if the organization id is there in the URL to see if the user is in a sub-organization.
+            (tenantDomain === AppConstants.getSuperTenant() || window[ "AppUtils" ].getConfig().organizationName) &&
+            hasRequiredScopes(feature?.organizations, feature?.organizations?.scopes?.read, scopes) &&
+            organizationConfigs.showOrganizationDropdown
+        );
+    }, [
+        organizationConfigs.showOrganizationDropdown,
+        tenantDomain,
+        feature.organizations
+    ]);
 
     /**
      * Check if there are applications registered and set the value to local storage.
@@ -223,7 +254,8 @@ export const Header: FunctionComponent<HeaderPropsInterface> = (
                             name: t("console:common.header.appSwitch.myAccount.name"),
                             onClick: () => {
                                 eventPublisher.publish("console-click-visit-my-account");
-                                window.open(accountAppURL, "_blank", "noopener");
+                                window.open((isPrivilegedUser ? privilegedUserAccountURL: accountAppURL)
+                                    , "_blank", "noopener");
                             }
                         }
                     ] }
@@ -359,7 +391,15 @@ export const Header: FunctionComponent<HeaderPropsInterface> = (
                             image={
                                 resolveAppLogoFilePath(window[ "AppUtils" ].getConfig().ui.appLogoPath,
                                     `${ window[ "AppUtils" ].getConfig().clientOrigin }/` +
-                                    `${ window[ "AppUtils" ].getConfig().appBase }/libs/themes/` +
+                                    `${
+                                        StringUtils.removeSlashesFromPath(
+                                            window[ "AppUtils" ].getConfig().appBase
+                                        ) !== ""
+                                            ? StringUtils.removeSlashesFromPath(
+                                                window[ "AppUtils" ].getConfig().appBase
+                                            ) + "/"
+                                            : ""
+                                    }libs/themes/` +
                                     config.ui.theme.name)
                             }
                         />
@@ -382,6 +422,10 @@ export const Header: FunctionComponent<HeaderPropsInterface> = (
                     showAppSwitchButton && commonConfig?.header?.renderAppSwitcherAsDropdown && {
                         component: renderAppSwitcher(),
                         floated: "right"
+                    },
+                    isOrgSwitcherEnabled && {
+                        component: <OrganizationSwitchDropdown />,
+                        floated: "left"
                     }
                 ])
             }
@@ -399,7 +443,8 @@ export const Header: FunctionComponent<HeaderPropsInterface> = (
                                 name: t("console:manage.features.header.links.userPortalNav"),
                                 onClick: () => {
                                     eventPublisher.publish("console-click-visit-my-account");
-                                    window.open(accountAppURL, "_blank", "noopener");
+                                    window.open((isPrivilegedUser ? privilegedUserAccountURL: accountAppURL),
+                                        "_blank", "noopener");
                                 }
                             }
                         ]

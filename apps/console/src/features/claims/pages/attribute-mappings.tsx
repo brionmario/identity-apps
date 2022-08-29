@@ -16,7 +16,6 @@
  * under the License.
  */
 
-import { getAllExternalClaims, getDialects } from "@wso2is/core/api";
 import { AlertLevels, ClaimDialect, ExternalClaim, TestableComponentInterface } from "@wso2is/core/models";
 import { addAlert } from "@wso2is/core/store";
 import {
@@ -34,7 +33,8 @@ import { useDispatch, useSelector } from "react-redux";
 import { RouteChildrenProps } from "react-router";
 import { Image, StrictTabProps } from "semantic-ui-react";
 import ExternalDialectEditPage from "./external-dialect-edit";
-import { attributeConfig } from "../../../extensions";
+import { SCIMConfigs, attributeConfig } from "../../../extensions";
+import { getAllExternalClaims, getDialects } from "../../claims/api";
 import { AppConstants, AppState, getTechnologyLogos, history } from "../../core";
 import { } from "../components";
 import { ClaimManagementConstants } from "../constants";
@@ -286,7 +286,8 @@ export const AttributeMappings: FunctionComponent<RouteChildrenProps<AttributeMa
                     filteredDialect.forEach((attributeMapping: ClaimDialect) => {
                         if (ClaimManagementConstants.OIDC_MAPPING.includes(attributeMapping.dialectURI)) {
                             type === ClaimManagementConstants.OIDC && attributeMappings.push(attributeMapping);
-                        } else if (ClaimManagementConstants.SCIM_MAPPING.includes(attributeMapping.dialectURI)) {
+                        } else if (Object.values(ClaimManagementConstants.SCIM_TABS).map(
+                            (tab: { name: string; uri: string }) => tab.uri).includes(attributeMapping.dialectURI)) {
                             type === ClaimManagementConstants.SCIM && attributeMappings.push(attributeMapping);
                         } else if (type === ClaimManagementConstants.OTHERS) {
                             attributeMappings.push(attributeMapping);
@@ -333,23 +334,25 @@ export const AttributeMappings: FunctionComponent<RouteChildrenProps<AttributeMa
                 const panes: StrictTabProps[ "panes" ] = [];
 
                 ClaimManagementConstants.SCIM_TABS.forEach((tab: { name: string; uri: string }) => {
-                    const dialect = dialects?.find((dialect: ClaimDialect) => dialect.dialectURI === tab.uri);
+                    if (!SCIMConfigs.hideCore1Schema || SCIMConfigs.scim.core1Schema !== tab.uri) {
+                        const dialect = dialects?.find((dialect: ClaimDialect) => dialect.dialectURI === tab.uri);
 
-                    dialect &&
-                        panes.push({
-                            menuItem: tab.name,
-                            render: () => (
-                                <ResourceTab.Pane controlledSegmentation attached={ false }>
-                                    <ExternalDialectEditPage 
-                                        id={ dialect.id } 
-                                        attributeUri={ tab.uri } 
-                                        attributeType={ type }
-                                        mappedLocalClaims={ mappedLocalclaims }
-                                        updateMappedClaims={ setTriggerFetchMappedClaims } 
-                                    />
-                                </ResourceTab.Pane>
-                            )
-                        });
+                        dialect &&
+                            panes.push({
+                                menuItem: tab.name,
+                                render: () => (
+                                    <ResourceTab.Pane controlledSegmentation attached={ false }>
+                                        <ExternalDialectEditPage 
+                                            id={ dialect.id } 
+                                            attributeUri={ tab.uri } 
+                                            attributeType={ type }
+                                            mappedLocalClaims={ mappedLocalclaims }
+                                            updateMappedClaims={ setTriggerFetchMappedClaims } 
+                                        />
+                                    </ResourceTab.Pane>
+                                )
+                            });
+                    }
                 });
 
                 if (attributeConfig.showCustomDialectInSCIM) {
@@ -400,6 +403,7 @@ export const AttributeMappings: FunctionComponent<RouteChildrenProps<AttributeMa
             <PageLayout
                 isLoading={ isLoading }
                 title={ resolvePageHeading() }
+                pageTitle={ resolvePageHeading() }
                 description={ resolvePageDescription() }
                 data-testid={ `${ testId }-page-layout` }
                 image={ resolvePageHeaderImage() }

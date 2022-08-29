@@ -27,7 +27,6 @@ import {
 } from "@wso2is/react-components";
 import isEmpty from "lodash-es/isEmpty";
 import React, {
-    ErrorInfo,
     FunctionComponent,
     ReactElement,
     ReactNode,
@@ -91,7 +90,7 @@ export const FullScreenView: FunctionComponent<FullScreenViewPropsInterface> = (
             return;
         }
 
-        const routes: RouteInterface[] = CommonRouteUtils.filterEnabledRoutes<FeatureConfigInterface>(
+        const [ routes, _sanitizedRoutes ] = CommonRouteUtils.filterEnabledRoutes<FeatureConfigInterface>(
             getFullScreenViewRoutes(),
             featureConfig,
             allowedScopes);
@@ -185,14 +184,6 @@ export const FullScreenView: FunctionComponent<FullScreenViewPropsInterface> = (
                         title={ t("console:common.placeholders.brokenPage.title") }
                     />
                 ) }
-                handleError={ (error: Error, errorInfo: ErrorInfo) => {
-                    eventPublisher.publish("error-captured-error-boundary", {
-                        error: error?.name,
-                        errorInfo: errorInfo?.componentStack,
-                        stack: error?.stack,
-                        type: "full-screen-view"
-                    });
-                } }
             >
                 <Suspense fallback={ <ContentLoader dimmer={ false } /> }>
                     <Switch>

@@ -32,7 +32,7 @@ import {
 } from "../../../extensions";
 import { updateMultiFactorAuthenticatorDetails } from "../api";
 import { IdentityProviderManagementConstants } from "../constants";
-import { AuthenticatorInterface, MultiFactorAuthenticatorInterface } from "../models";
+import { AuthenticatorInterface, AuthenticatorSettingsFormModes, MultiFactorAuthenticatorInterface } from "../models";
 
 /**
  * Proptypes for the Multi-factor Authenticator edit component.
@@ -193,6 +193,7 @@ export const EditMultiFactorAuthenticator: FunctionComponent<EditMultiFactorAuth
                                     <Grid.Column width={ 16 }>
                                         <EmphasizedSegment padded="very">
                                             <AuthenticatorFormFactory
+                                                mode={ AuthenticatorSettingsFormModes.EDIT }
                                                 metadata={ null }
                                                 showCustomProperties={ false }
                                                 initialValues={ authenticator }
@@ -233,11 +234,12 @@ export const EditMultiFactorAuthenticator: FunctionComponent<EditMultiFactorAuth
             panes.push(...tabPaneExtensions);
         }
 
-        // If the MFA is TOTP/FIDO skip the settings tab.
+        // If the MFA is TOTP/FIDO/Magic Link skip the settings tab.
         if (
             ![
                 IdentityProviderManagementConstants.TOTP_AUTHENTICATOR_ID,
-                IdentityProviderManagementConstants.FIDO_AUTHENTICATOR_ID
+                IdentityProviderManagementConstants.FIDO_AUTHENTICATOR_ID,
+                IdentityProviderManagementConstants.MAGIC_LINK_AUTHENTICATOR_ID
             ].includes(authenticator.id)
         ) {
             panes.push({
@@ -277,7 +279,8 @@ export const EditMultiFactorAuthenticator: FunctionComponent<EditMultiFactorAuth
 
         if (![
             IdentityProviderManagementConstants.TOTP_AUTHENTICATOR_ID,
-            IdentityProviderManagementConstants.FIDO_AUTHENTICATOR_ID
+            IdentityProviderManagementConstants.FIDO_AUTHENTICATOR_ID,
+            IdentityProviderManagementConstants.MAGIC_LINK_AUTHENTICATOR_ID
         ].includes(authenticator.id)) {
             return activeIndex;
         }

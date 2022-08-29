@@ -20,6 +20,7 @@ import { RolesMemberInterface, TestableComponentInterface } from "@wso2is/core/m
 import { Forms } from "@wso2is/forms";
 import {
     Button,
+    ContentLoader,
     EmphasizedSegment,
     EmptyPlaceholder,
     Heading,
@@ -95,6 +96,8 @@ export const AddRoleUsers: FunctionComponent<AddRoleUserProps> = (props: AddRole
 
     const [ showAddNewUserModal, setAddNewUserModalView ] = useState<boolean>(false);
 
+    const [ isSelectedUsersLoading, setIsSelectedUsersLoading ] = useState<boolean>(true);
+
     const initialRenderTempUsers = useRef(true);
 
     useEffect(() => {
@@ -139,6 +142,14 @@ export const AddRoleUsers: FunctionComponent<AddRoleUserProps> = (props: AddRole
     const getList = (limit: number, offset: number, filter: string, attribute: string, userStore: string) => {
         getUsersList(limit, offset, filter, attribute, userStore)
             .then((response) => {
+                if (!response.Resources) {
+                    setUsersList([]);
+                    setInitialUserList([]);
+                    setIsSelectedUsersLoading(false);
+
+                    return;
+                }
+
                 const responseUsers = response.Resources.filter((user
                 ) => user.userName.split("/")[0] !== CONSUMER_USERSTORE);
 
@@ -168,6 +179,8 @@ export const AddRoleUsers: FunctionComponent<AddRoleUserProps> = (props: AddRole
                         setTempUserList(selectedUserList);
                     }
                 }
+
+                setIsSelectedUsersLoading(false);
 
                 if (initialValues && initialValues instanceof Array) {
                     const selectedUserList: UserBasicInterface[] = [];
@@ -339,7 +352,7 @@ export const AddRoleUsers: FunctionComponent<AddRoleUserProps> = (props: AddRole
                 }
             });
         } else {
-            setSelectedUsers(initialUserList);
+            setSelectedUsers(tempUserList);
         }
     };
 
@@ -550,31 +563,35 @@ export const AddRoleUsers: FunctionComponent<AddRoleUserProps> = (props: AddRole
                                         </Grid.Row>
                                     </EmphasizedSegment>
                                 ) : (
-                                    <EmphasizedSegment>
-                                        <EmptyPlaceholder
-                                            title={ t("console:manage.features.roles.edit.users.list." +
-                                                "emptyPlaceholder.title") }
-                                            subtitle={ [
-                                                t("console:manage.features.roles.edit.users.list." +
-                                                    "emptyPlaceholder.subtitles", { type: "role" })
-                                            ] }
-                                            action={
-                                                !isReadOnly && (
-                                                    <PrimaryButton
-                                                        data-testid={ `${ testId }-users-list-empty-assign-users-
-                                                        button` }
-                                                        onClick={ handleOpenAddNewGroupModal }
-                                                        icon="plus"
-                                                    >
-                                                        { t("console:manage.features.roles.edit.users.list." +
-                                                            "emptyPlaceholder.action") }
-                                                    </PrimaryButton>
-                                                )
-                                            }
-                                            image={ getEmptyPlaceholderIllustrations().emptyList }
-                                            imageSize="tiny"
-                                        />
-                                    </EmphasizedSegment>
+                                    !isSelectedUsersLoading
+                                        ? (
+                                            <EmphasizedSegment>
+                                                <EmptyPlaceholder
+                                                    title={ t("console:manage.features.roles.edit.users.list." +
+                                                        "emptyPlaceholder.title") }
+                                                    subtitle={ [
+                                                        t("console:manage.features.roles.edit.users.list." +
+                                                            "emptyPlaceholder.subtitles", { type: "role" })
+                                                    ] }
+                                                    action={
+                                                        !isReadOnly && (
+                                                            <PrimaryButton
+                                                                data-testid={ `${ testId }-users-list-empty-assign-
+                                                                users-button` }
+                                                                onClick={ handleOpenAddNewGroupModal }
+                                                                icon="plus"
+                                                            >
+                                                                { t("console:manage.features.roles.edit.users.list." +
+                                                                    "emptyPlaceholder.action") }
+                                                            </PrimaryButton>
+                                                        )
+                                                    }
+                                                    image={ getEmptyPlaceholderIllustrations().emptyList }
+                                                    imageSize="tiny"
+                                                />
+                                            </EmphasizedSegment>
+                                        )
+                                        : <ContentLoader className="p-3" active />
                                 )
                             }
                         </Grid.Column>

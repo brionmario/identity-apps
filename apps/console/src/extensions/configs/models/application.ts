@@ -16,19 +16,24 @@
  * under the License.
  */
 
-import { ReactNode } from "react";
+import { ReactElement, ReactNode } from "react";
 import { Dispatch } from "redux";
 import {
     ExtendedClaimInterface,
     ExtendedExternalClaimInterface,
     SelectedDialectInterface
 } from "../../../features/applications/components/settings";
+import { ApplicationInterface, ApplicationTabTypes } from "../../../features/applications/models";
 
 export interface ApplicationConfig {
     advancedConfigurations: {
         showEnableAuthorization: boolean;
+        showMyAccount: boolean;
         showSaaS: boolean;
         showReturnAuthenticatedIdPs: boolean;
+    };
+    generalSettings: {
+        getFieldReadOnlyStatus: (application: ApplicationInterface, fieldName: string) => boolean ;
     };
     attributeSettings: {
         advancedAttributeSettings: {
@@ -53,6 +58,30 @@ export interface ApplicationConfig {
         extendTabs: boolean; //should be true for cloud
         showProvisioningSettings: boolean;
         renderHelpPanelItems: () => ReactNode;
+        showDangerZone: (application: ApplicationInterface) => boolean;
+        showDeleteButton: (application: ApplicationInterface) => boolean;
+        getTabPanelReadOnlyStatus: (tabPanelName: string, application: ApplicationInterface) => boolean;
+        isTabEnabledForApp: (clientId: string, tabType: ApplicationTabTypes, tenantDomain: string) => boolean;
+        getActions: (
+            clientId: string,
+            tenant: string,
+            testId: string
+        ) => ReactElement;
+        getOverriddenDescription: (
+            clientId: string,
+            tenantDomain: string,
+            templateName: string
+        ) => ReactElement,
+        getOveriddenTab: (
+            clientId: string,
+            tabName: any,
+            defaultComponent: ReactElement,
+            appName: string,
+            appId: string,
+            tenantDomain: string
+        ) => ReactNode,
+        getOverriddenImage: (clientId: string, tenantDomain: string) => ReactElement;
+        showApplicationShare: boolean;
     };
     inboundOIDCForm: {
         shouldValidateCertificate: boolean;
@@ -65,7 +94,9 @@ export interface ApplicationConfig {
         showRequestObjectSignatureValidation: boolean;
         showCertificates: boolean;
         showReturnAuthenticatedIdPList: boolean;
-        disabledGrantTypes: string[];
+        disabledGrantTypes: {
+            "custom-application": string[]
+        };
     };
     inboundSAMLForm: {
         showApplicationQualifier: boolean;
@@ -85,6 +116,7 @@ export interface ApplicationConfig {
                 dispatch: Dispatch
             ): boolean;
         };
+        identifierFirstWarning: boolean;
     };
     templates: {
         android: boolean;
@@ -96,6 +128,7 @@ export interface ApplicationConfig {
     };
     customApplication: {
         allowedProtocolTypes: string[];
+        defaultTabIndex: number;
     };
     excludeIdentityClaims: boolean;
     excludeSubjectClaim: boolean;

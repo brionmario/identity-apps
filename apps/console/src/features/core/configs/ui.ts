@@ -50,6 +50,7 @@ import {
 import {
     ReactComponent as ApplicationsOutlineIcon
 } from "../../../themes/default/assets/images/icons/outline-icons/application-outline.svg";
+import { ReactComponent as HomeIcon } from "../../../themes/default/assets/images/icons/outline-icons/home-outline.svg";
 import {
     ReactComponent as IDPOutlineIcon
 } from "../../../themes/default/assets/images/icons/outline-icons/idp-provider-outline.svg";
@@ -104,6 +105,9 @@ import {
     ReactComponent as BrokenPageIllustration
 } from "../../../themes/default/assets/images/placeholder-illustrations/broken-page-illustration.svg";
 import {
+    ReactComponent as CreateErrorIllustration
+} from "../../../themes/default/assets/images/placeholder-illustrations/create-error-illustration.svg";
+import {
     ReactComponent as EmptyListIllustration
 } from "../../../themes/default/assets/images/placeholder-illustrations/empty-list-illustration.svg";
 import {
@@ -132,7 +136,6 @@ import { ReactComponent as ReactLogo } from "../../../themes/default/assets/imag
 import { ReactComponent as VueLogo } from "../../../themes/default/assets/images/technologies/vue-logo.svg";
 import { ReactComponent as WindowsLogo } from "../../../themes/default/assets/images/technologies/windows-logo.svg";
 import { ServerConfigurationsConstants } from "../../server-configurations/constants";
-import { ReactComponent as HomeIcon } from "../../../themes/default/assets/images/icons/outline-icons/home-outline.svg";
 
 /**
  * Typed interface of {@link getTechnologyLogos}
@@ -206,6 +209,7 @@ export type GetSidePanelIconsInterface = {
     emailTemplates: FunctionComponent,
     groups: FunctionComponent,
     identityProviders: FunctionComponent,
+    organization: FunctionComponent,
     overview: FunctionComponent,
     remoteFetch: FunctionComponent,
     roles: FunctionComponent,
@@ -244,6 +248,7 @@ export const getSidePanelIcons = (): GetSidePanelIconsInterface => {
         emailTemplates: PaperRocketIcon,
         groups: UserGroupIcon,
         identityProviders: IDPOutlineIcon,
+        organization: LDAPOutlineIcon,
         overview: DashboardIcon,
         remoteFetch: CodeForkIcon,
         roles: BriefcaseIcon,
@@ -299,6 +304,7 @@ export const getAdvancedSearchIcons = (): GetAdvancedSearchIconsInterface  => {
 export type GetEmptyPlaceholderIllustrationsInterface = {
     alert: FunctionComponent,
     brokenPage: FunctionComponent,
+    createError: FunctionComponent,
     emptyList: FunctionComponent,
     emptySearch: FunctionComponent,
     fileUpload: FunctionComponent,
@@ -319,6 +325,7 @@ export const getEmptyPlaceholderIllustrations = (): GetEmptyPlaceholderIllustrat
     return {
         alert: AlertIcon,
         brokenPage: BrokenPageIllustration,
+        createError: CreateErrorIllustration,
         emptyList: EmptyListIllustration,
         emptySearch: EmptySearchResultsIllustration,
         fileUpload: FileUploadIllustration,

@@ -48,10 +48,12 @@ import {
     DropdownProps,
     Grid,
     Icon,
+    Label,
     List,
     PaginationProps,
     Popup
 } from "semantic-ui-react";
+import { applicationConfig } from "../../../extensions";
 import {
     AdvancedSearchWithBasicFilters,
     AppConstants,
@@ -64,7 +66,7 @@ import {
     history
 } from "../../core";
 import { RemoteFetchStatus } from "../../remote-repository-configuration";
-import { getApplicationList } from "../api";
+import { useApplicationList } from "../api";
 import { ApplicationList, MinimalAppCreateWizard } from "../components";
 import { ApplicationManagementConstants } from "../constants";
 import CustomApplicationTemplate
@@ -126,71 +128,64 @@ const ApplicationsPage: FunctionComponent<ApplicationsPageInterface> = (
     const [ listSortingStrategy, setListSortingStrategy ] = useState<DropdownItemProps>(
         APPLICATIONS_LIST_SORTING_OPTIONS[ 0 ]
     );
-    const [ appList, setAppList ] = useState<ApplicationListInterface>({});
     const [ listOffset, setListOffset ] = useState<number>(0);
     const [ listItemLimit, setListItemLimit ] = useState<number>(UIConstants.DEFAULT_RESOURCE_LIST_ITEM_LIMIT);
-    const [ isApplicationListRequestLoading, setApplicationListRequestLoading ] = useState<boolean>(false);
-    const [ isLoading, setLoading ] = useState<boolean>(true);
     const [ triggerClearQuery, setTriggerClearQuery ] = useState<boolean>(false);
     const [ showWizard, setShowWizard ] = useState<boolean>(false);
-    const [ isApplicationsNextPageAvailable, setIsApplicationsNextPageAvailable ] = useState<boolean>(undefined);
     const config: ConfigReducerStateInterface = useSelector((state: AppState) => state.config);
-    const consumerAccountURL: string = useSelector((state: AppState) => 
+    const consumerAccountURL: string = useSelector((state: AppState) =>
         state?.config?.deployment?.accountApp?.tenantQualifiedPath);
+    const [ isLoadingForTheFirstTime, setIsLoadingForTheFirstTime ] = useState<boolean>(true);
 
     const eventPublisher: EventPublisher = EventPublisher.getInstance();
 
+    const {
+        data: applicationList,
+        isLoading: isApplicationListFetchRequestLoading,
+        error: applicationListFetchRequestError,
+        mutate: mutateApplicationListFetchRequest
+    } = useApplicationList("advancedConfigurations,templateId", listItemLimit, listOffset, searchQuery);
+
     /**
-     * Called on every `listOffset` & `listItemLimit` change.
+     * Sets the initial spinner.
+     * TODO: Remove this once the loaders are finalized.
      */
     useEffect(() => {
-        if(searchQuery) {
-            getAppLists(listItemLimit, listOffset, searchQuery);
-        } else {
-            getAppLists(listItemLimit, listOffset, null);
-        }       
-    }, [ listOffset, listItemLimit ]);
+        if (isApplicationListFetchRequestLoading === false && isLoadingForTheFirstTime === true) {
+            setIsLoadingForTheFirstTime(false);
+        }
+    }, [ isApplicationListFetchRequestLoading, isLoadingForTheFirstTime ]);
 
     /**
-     * Retrieves the list of applications.
-     *
-     * @param {number} limit - List limit.
-     * @param {number} offset - List offset.
-     * @param {string} filter - Search query.
+     * Handles the application list fetch request error.
      */
-    const getAppLists = (limit: number, offset: number, filter: string): void => {
-        setApplicationListRequestLoading(true);
+    useEffect(() => {
 
-        getApplicationList(limit, offset, filter)
-            .then((response) => {
-                handleNextButtonVisibility(response);
-                setAppList(response);
-            })
-            .catch((error) => {
-                if (error.response && error.response.data && error.response.data.description) {
-                    dispatch(addAlert({
-                        description: error.response.data.description,
-                        level: AlertLevels.ERROR,
-                        message: t("console:develop.features.applications.notifications." +
-                            "fetchApplications.error.message")
-                    }));
+        if (!applicationListFetchRequestError) {
+            return;
+        }
 
-                    return;
-                }
+        if (applicationListFetchRequestError.response
+            && applicationListFetchRequestError.response.data
+            && applicationListFetchRequestError.response.data.description) {
+            dispatch(addAlert({
+                description: applicationListFetchRequestError.response.data.description,
+                level: AlertLevels.ERROR,
+                message: t("console:develop.features.applications.notifications." +
+                    "fetchApplications.error.message")
+            }));
 
-                dispatch(addAlert({
-                    description: t("console:develop.features.applications.notifications.fetchApplications" +
-                        ".genericError.description"),
-                    level: AlertLevels.ERROR,
-                    message: t("console:develop.features.applications.notifications." +
-                        "fetchApplications.genericError.message")
-                }));
-            })
-            .finally(() => {
-                setApplicationListRequestLoading(false);
-                setLoading(false);
-            });
-    };
+            return;
+        }
+
+        dispatch(addAlert({
+            description: t("console:develop.features.applications.notifications.fetchApplications" +
+                ".genericError.description"),
+            level: AlertLevels.ERROR,
+            message: t("console:develop.features.applications.notifications." +
+                "fetchApplications.genericError.message")
+        }));
+    }, [ applicationListFetchRequestError ]);
 
     /**
      * Sets the list sorting strategy.
@@ -206,18 +201,18 @@ const ApplicationsPage: FunctionComponent<ApplicationsPageInterface> = (
     };
 
     /**
-     *
-     * Sets the Next button visibility.
+     * Checks if `Next` page nav button should be shown.
      *
      * @param appList - List of applications.
+     * @returns {boolean} - `true` if `Next` page nav button should be shown.
      */
-    const handleNextButtonVisibility = (appList: ApplicationListInterface): void => {
+    const shouldShowNextPageNavigation = (appList: ApplicationListInterface): boolean => {
 
-        if (appList.startIndex + appList.count === appList.totalResults + 1) {
-            setIsApplicationsNextPageAvailable(false);
-        } else {
-            setIsApplicationsNextPageAvailable(true);
+        if (appList?.startIndex + appList?.count === appList?.totalResults + 1) {
+            return false;
         }
+
+        return true;
     };
 
     /**
@@ -228,7 +223,6 @@ const ApplicationsPage: FunctionComponent<ApplicationsPageInterface> = (
      */
     const handleApplicationFilter = (query: string): void => {
         setSearchQuery(query);
-        getAppLists(listItemLimit, listOffset, query);
     };
 
     /**
@@ -256,7 +250,7 @@ const ApplicationsPage: FunctionComponent<ApplicationsPageInterface> = (
      * Handles application delete action.
      */
     const handleApplicationDelete = (): void => {
-        getAppLists(listItemLimit, listOffset, null);
+        mutateApplicationListFetchRequest();
     };
 
     /**
@@ -264,7 +258,6 @@ const ApplicationsPage: FunctionComponent<ApplicationsPageInterface> = (
      */
     const handleSearchQueryClear = (): void => {
         setSearchQuery("");
-        getAppLists(listItemLimit, listOffset, null);
         setTriggerClearQuery(!triggerClearQuery);
     };
 
@@ -291,7 +284,8 @@ const ApplicationsPage: FunctionComponent<ApplicationsPageInterface> = (
      * @return {React.ReactElement}
      */
     const renderTenantedMyAccountLink = (): ReactElement => {
-        if (AppConstants.getTenant() === AppConstants.getSuperTenant()) {
+        if (AppConstants.getTenant() === AppConstants.getSuperTenant() ||
+            !applicationConfig.advancedConfigurations.showMyAccount) {
             return null;
         }
 
@@ -303,12 +297,13 @@ const ApplicationsPage: FunctionComponent<ApplicationsPageInterface> = (
                 <List>
                     <List.Item>
                         <Grid verticalAlign="middle">
-                            <Grid.Column 
+                            <Grid.Column
                                 floated="left"
-                                width={ 11 }
+                                width={ 10 }
                             >
                                 <GenericIcon
                                     icon={ getGeneralIcons().myAccountSolidIcon }
+                                    className="mt-1"
                                     floated="left"
                                     size="tiny"
                                     spaced="right"
@@ -318,22 +313,30 @@ const ApplicationsPage: FunctionComponent<ApplicationsPageInterface> = (
                                     transparent
                                 />
                                 <List.Header
-                                    className="mb-1"
                                     data-componentid="application-consumer-account-link-title"
+                                    className="my-account-title mb-1"
                                 >
                                     { t("console:develop.features.applications.myaccount.title") }
+                                    <Label size="tiny" className="preview-label ml-2">
+                                        { t("common:preview") }
+                                    </Label>
                                 </List.Header>
                                 <List.Description
                                     data-componentid="application-consumer-account-link-description"
                                 >
                                     { t("console:develop.features.applications.myaccount.description") }
+                                    <DocumentationLink
+                                        link={ getLink("develop.applications.myaccount.learnMore") }
+                                    >
+                                        { t("common:learnMore") }
+                                    </DocumentationLink>
                                 </List.Description>
                             </Grid.Column>
                             <Popup
                                 trigger={
                                     (<Grid.Column
-                                        floated="right" 
-                                        width={ 5 }
+                                        floated="right"
+                                        width={ 6 }
                                     >
                                         <CopyInputField
                                             value={ consumerAccountURL }
@@ -356,13 +359,14 @@ const ApplicationsPage: FunctionComponent<ApplicationsPageInterface> = (
 
     return (
         <PageLayout
+            pageTitle="Applications"
             action={
-                (!isLoading && !(!searchQuery && appList?.totalResults <= 0))
+                (!isApplicationListFetchRequestLoading && !(!searchQuery && applicationList?.totalResults <= 0))
                 && (
                     <Show when={ AccessControlConstants.APPLICATION_WRITE }>
                         <PrimaryButton
-                            disabled={ isApplicationListRequestLoading }
-                            loading={ isApplicationListRequestLoading }
+                            disabled={ isApplicationListFetchRequestLoading }
+                            loading={ isApplicationListFetchRequestLoading }
                             onClick={ (): void => {
                                 eventPublisher.publish("application-click-new-application-button");
                                 history.push(AppConstants.getPaths().get("APPLICATION_TEMPLATES"));
@@ -389,10 +393,10 @@ const ApplicationsPage: FunctionComponent<ApplicationsPageInterface> = (
             contentTopMargin={ (AppConstants.getTenant() === AppConstants.getSuperTenant()) }
             data-testid={ `${ testId }-page-layout` }
         >
-            { !isLoading? (
+            { !isLoadingForTheFirstTime? (
                 <>
                     { renderTenantedMyAccountLink() }
-                    { renderRemoteFetchStatus() }
+                    { /* renderRemoteFetchStatus() */ }
                     <ListLayout
                         advancedSearch={ (
                             <AdvancedSearchWithBasicFilters
@@ -402,6 +406,11 @@ const ApplicationsPage: FunctionComponent<ApplicationsPageInterface> = (
                                         key: 0,
                                         text: t("common:name"),
                                         value: "name"
+                                    },
+                                    {
+                                        key: 1,
+                                        text: "ClientId",
+                                        value: "clientId"
                                     }
                                 ] }
                                 filterAttributePlaceholder={
@@ -419,25 +428,26 @@ const ApplicationsPage: FunctionComponent<ApplicationsPageInterface> = (
                                 placeholder={ t("console:develop.features.applications.advancedSearch.placeholder") }
                                 defaultSearchAttribute="name"
                                 defaultSearchOperator="co"
+                                predefinedDefaultSearchStrategy="name co %search-value% or clientId co %search-value%"
                                 triggerClearQuery={ triggerClearQuery }
                                 data-testid={ `${ testId }-list-advanced-search` }
                             />
                         ) }
-                        currentListSize={ appList.count }
+                        currentListSize={ applicationList?.count }
                         listItemLimit={ listItemLimit }
                         onItemsPerPageDropdownChange={ handleItemsPerPageDropdownChange }
                         onPageChange={ handlePaginationChange }
                         onSortStrategyChange={ handleListSortingStrategyOnChange }
                         showPagination={ true }
-                        showTopActionPanel={ 
-                            isApplicationListRequestLoading 
-                        || !(!searchQuery && appList?.totalResults <= 0) }
+                        showTopActionPanel={
+                            isApplicationListFetchRequestLoading
+                        || !(!searchQuery && applicationList?.totalResults <= 0) }
                         sortOptions={ APPLICATIONS_LIST_SORTING_OPTIONS }
                         sortStrategy={ listSortingStrategy }
-                        totalPages={ Math.ceil(appList.totalResults / listItemLimit) }
-                        totalListSize={ appList.totalResults }
+                        totalPages={ Math.ceil(applicationList?.totalResults / listItemLimit) }
+                        totalListSize={ applicationList?.totalResults  }
                         paginationOptions={ {
-                            disableNextButton: !isApplicationsNextPageAvailable
+                            disableNextButton: !shouldShowNextPageNavigation(applicationList)
                         } }
                         data-testid={ `${ testId }-list-layout` }
                     >
@@ -450,6 +460,11 @@ const ApplicationsPage: FunctionComponent<ApplicationsPageInterface> = (
                                             key: 0,
                                             text: t("common:name"),
                                             value: "name"
+                                        },
+                                        {
+                                            key: 1,
+                                            text: "ClientId",
+                                            value: "clientId"
                                         }
                                     ] }
                                     filterAttributePlaceholder={
@@ -469,13 +484,16 @@ const ApplicationsPage: FunctionComponent<ApplicationsPageInterface> = (
                                     }
                                     defaultSearchAttribute="name"
                                     defaultSearchOperator="co"
+                                    predefinedDefaultSearchStrategy={
+                                        "name co %search-value% or clientId co %search-value%"
+                                    }
                                     triggerClearQuery={ triggerClearQuery }
                                     data-testid={ `${ testId }-list-advanced-search` }
                                 />
                             ) }
                             featureConfig={ featureConfig }
-                            isLoading={ isApplicationListRequestLoading }
-                            list={ appList }
+                            isLoading={ isApplicationListFetchRequestLoading }
+                            list={ applicationList }
                             onApplicationDelete={ handleApplicationDelete }
                             onEmptyListPlaceholderActionClick={
                                 () => {
@@ -507,7 +525,7 @@ const ApplicationsPage: FunctionComponent<ApplicationsPageInterface> = (
                 </>
             ) : (
                 <GridLayout
-                    isLoading={ isLoading }
+                    isLoading={ isLoadingForTheFirstTime }
                 />
             )
             }

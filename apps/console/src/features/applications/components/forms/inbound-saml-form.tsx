@@ -200,7 +200,6 @@ export const InboundSAMLForm: FunctionComponent<InboundSAMLFormPropsInterface> =
         if (certificate?.type){
             setSelectedCertType(certificate?.type);
         }
-
     },[ certificate ]);
 
     const updateConfiguration = (values) => {
@@ -227,7 +226,7 @@ export const InboundSAMLForm: FunctionComponent<InboundSAMLFormPropsInterface> =
                     idpEntityIdAlias: values.get("idpEntityIdAlias"),
                     issuer: values.get("issuer") || initialValues?.issuer,
                     requestValidation: {
-                        enableSignatureValidation: values.get("requestSignatureValidation")
+                        enableSignatureValidation: isCertAvailableForEncrypt && values.get("requestSignatureValidation")
                             .includes("enableSignatureValidation"),
                         signatureValidationCertAlias: values.get("signatureValidationCertAlias")
                     },
@@ -476,6 +475,9 @@ export const InboundSAMLForm: FunctionComponent<InboundSAMLFormPropsInterface> =
                             setAssertionConsumerUrlError(true);
                             scrollToInValidField("consumerURL");
                         } else {
+                            if (selectedCertType === CertificateTypeInterface.NONE) {
+                                setFinalCertValue("");
+                            } 
                             onSubmit(updateConfiguration(values));
                         }
                     } }
@@ -538,7 +540,7 @@ export const InboundSAMLForm: FunctionComponent<InboundSAMLFormPropsInterface> =
                                     <Trans
                                         i18nKey={
                                             "console:develop.features.applications.forms.inboundSAML.fields." +
-                                               "issuer.hint"
+                                            "issuer.hint"
                                         }
                                     >
                                         This specifies the unique identifier of the application. This is also the
@@ -726,7 +728,7 @@ export const InboundSAMLForm: FunctionComponent<InboundSAMLFormPropsInterface> =
                                         } }
                                         i18nKey={
                                             "console:develop.features.applications.forms.inboundSAML.fields" +
-                                               ".idpEntityIdAlias.hint"
+                                            ".idpEntityIdAlias.hint"
                                         }
                                     >
                                         This value can override the default Identity Provider (IdP) entity ID
@@ -770,8 +772,9 @@ export const InboundSAMLForm: FunctionComponent<InboundSAMLFormPropsInterface> =
                                         }
                                     }
                                     value={
-                                        initialValues?.requestValidation.enableSignatureValidation ?
-                                            [ "enableSignatureValidation" ] : []
+                                        (initialValues?.requestValidation.enableSignatureValidation)
+                                            ? [ "enableSignatureValidation" ] 
+                                            : []
                                     }
                                     children={ [
                                         {
@@ -1234,8 +1237,9 @@ export const InboundSAMLForm: FunctionComponent<InboundSAMLFormPropsInterface> =
                                             ".encryption.fields.assertionEncryption.validations.empty")
                                     }
                                     value={
-                                        initialValues?.singleSignOnProfile.assertion.encryption.enabled ?
-                                            [ "enableAssertionEncryption" ] : []
+                                        (initialValues?.singleSignOnProfile.assertion.encryption.enabled)
+                                            ? [ "enableAssertionEncryption" ] 
+                                            : []
                                     }
                                     type="checkbox"
                                     listen={
@@ -1773,6 +1777,7 @@ export const InboundSAMLForm: FunctionComponent<InboundSAMLFormPropsInterface> =
                                     application={ application }
                                     updateCertFinalValue={ setFinalCertValue }
                                     updateCertType={ setSelectedCertType }
+                                    canDiscardCertificate = { (): boolean => !isRequestSignatureValidationEnabled }
                                     certificate={ certificate }
                                     readOnly={ readOnly }
                                     hidden={ false }

@@ -24,12 +24,16 @@ import {
     FeatureAccessConfigInterface
 } from "@wso2is/core/models";
 import { I18nModuleOptionsInterface } from "@wso2is/i18n";
-import { ApplicationTemplateLoadingStrategies, ApplicationsResourceEndpointsInterface } from "../../applications";
+import {
+    ApplicationTemplateLoadingStrategies,
+    ApplicationsResourceEndpointsInterface
+} from "../../applications/models";
 import { CertificatesResourceEndpointsInterface } from "../../certificates";
 import { ClaimResourceEndpointsInterface } from "../../claims";
 import { GroupsResourceEndpointsInterface } from "../../groups";
 import { IDPResourceEndpointsInterface, IdentityProviderTemplateLoadingStrategies } from "../../identity-providers";
 import { ScopesResourceEndpointsInterface } from "../../oidc-scopes";
+import { OrganizationResourceEndpointsInterface } from "../../organizations/models";
 import { RolesResourceEndpointsInterface } from "../../roles";
 import { SecretsManagementEndpoints } from "../../secrets/models/endpoints";
 import { ServerConfigurationsResourceEndpointsInterface } from "../../server-configurations";
@@ -88,6 +92,14 @@ export interface FeatureConfigInterface {
      */
     oidcScopes?: FeatureAccessConfigInterface;
     /**
+     * Organization management feature.
+     */
+    organizations?: FeatureAccessConfigInterface;
+    /**
+     * Organization role management feature.
+     */
+    organizationsRoles?: FeatureAccessConfigInterface;
+    /**
      * Remote Fetch Config management feature.
      */
     remoteFetchConfig?: FeatureAccessConfigInterface;
@@ -107,6 +119,10 @@ export interface FeatureConfigInterface {
      * Secret Management Feature UI Access Scopes.
      */
     secretsManagement?: FeatureAccessConfigInterface;
+    /**
+     * Try It feature
+     */
+    tryIt?: FeatureAccessConfigInterface;
 }
 
 /**
@@ -284,7 +300,8 @@ export interface ServiceResourceEndpointsInterface extends ClaimResourceEndpoint
     ApplicationsResourceEndpointsInterface,
     IDPResourceEndpointsInterface,
     ScopesResourceEndpointsInterface,
-    SecretsManagementEndpoints {
+    SecretsManagementEndpoints,
+    OrganizationResourceEndpointsInterface {
 
     CORSOrigins: string;
     // TODO: Remove this endpoint and use ID token to get the details

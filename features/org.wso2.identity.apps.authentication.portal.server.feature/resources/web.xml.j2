@@ -86,6 +86,14 @@
         </context-param>
     {% endif %}
 
+    {% if authenticationendpoint.console_url is defined %}
+     <!-- *************** Console URL ********************** -->
+        <context-param>
+            <param-name>ConsoleURL</param-name>
+            <param-value>{{ authenticationendpoint.console_url }}</param-value>
+        </context-param>
+    {% endif %}
+
     <!-- *************** End of Account Recovery Endpoint Context URL Configuration ********************** -->
     <!-- *************** Identity Server Endpoint URL Configuration ********************** -->
     {% if authenticationendpoint.identity_server_endpoint_url is defined %}
@@ -143,6 +151,15 @@
     {% endfor %}
     {% endif %}
     <!-- *************** End of Authentication Portal Context Parameters ********************** -->
+
+    <!-- *************** Layout Store URL Configuration ********************** -->
+    {% if webappscommon.layout_store_url is defined %}
+    <context-param>
+        <param-name>LayoutStoreURL</param-name>
+        <param-value>{{ webappscommon.layout_store_url }}</param-value>
+    </context-param>
+    {% endif %}
+    <!-- *************** End of Layout Store URL Configuration ********************** -->
 
     <filter>
         <filter-name>HttpHeaderSecurityFilter</filter-name>
@@ -365,6 +382,16 @@
     </servlet>
 
     <servlet>
+        <servlet-name>backup_code.do</servlet-name>
+        <jsp-file>/backup-code.jsp</jsp-file>
+    </servlet>
+
+    <servlet>
+        <servlet-name>backup_code_error.do</servlet-name>
+        <jsp-file>/backup-code-error.jsp</jsp-file>
+    </servlet>
+
+    <servlet>
         <servlet-name>email_capture.do</servlet-name>
         <jsp-file>/emailAddressCapture.jsp</jsp-file>
     </servlet>
@@ -379,6 +406,52 @@
         <jsp-file>/emailOtpError.jsp</jsp-file>
     </servlet>
 
+    <servlet>
+        <servlet-name>mobile.do</servlet-name>
+        <jsp-file>/mobile.jsp</jsp-file>
+    </servlet>
+
+    <servlet>
+        <servlet-name>sms_otp.do</servlet-name>
+        <jsp-file>/smsOtp.jsp</jsp-file>
+    </servlet>
+
+    <servlet>
+        <servlet-name>sms_otp_error.do</servlet-name>
+        <jsp-file>/smsOtpError.jsp</jsp-file>
+    </servlet>
+
+    {% for custom_servlet in servlet %}
+    <servlet>
+        <servlet-name>{{custom_servlet.name}}</servlet-name>
+        <jsp-file>{{custom_servlet.jsp}}</jsp-file>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>{{custom_servlet.name}}</servlet-name>
+        <url-pattern>{{custom_servlet.url}}</url-pattern>
+    </servlet-mapping>
+    {% endfor %}
+
+    <servlet>
+        <servlet-name>magic_link_notification.do</servlet-name>
+        <jsp-file>/magic_link_notification.jsp</jsp-file>
+    </servlet>
+
+    <servlet-mapping>
+        <servlet-name>magic_link_notification.do</servlet-name>
+        <url-pattern>/magic_link_notification.do</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>org_name.do</servlet-name>
+        <jsp-file>/org_name.jsp</jsp-file>
+    </servlet>
+
+    <servlet>
+        <servlet-name>select_org.do</servlet-name>
+        <jsp-file>/select_org.jsp</jsp-file>
+    </servlet>
+    
     <servlet-mapping>
         <servlet-name>totp_enroll.do</servlet-name>
         <url-pattern>/totp_enroll.do</url-pattern>
@@ -395,6 +468,16 @@
     </servlet-mapping>
 
     <servlet-mapping>
+        <servlet-name>backup_code.do</servlet-name>
+        <url-pattern>/backup_code.do</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>backup_code_error.do</servlet-name>
+        <url-pattern>/backup_code_error.do</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
         <servlet-name>email_capture.do</servlet-name>
         <url-pattern>/email_capture.do</url-pattern>
     </servlet-mapping>
@@ -407,6 +490,31 @@
     <servlet-mapping>
         <servlet-name>email_otp_error.do</servlet-name>
         <url-pattern>/email_otp_error.do</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>mobile.do</servlet-name>
+        <url-pattern>/mobile.do</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>sms_otp.do</servlet-name>
+        <url-pattern>/sms_otp.do</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>sms_otp_error.do</servlet-name>
+        <url-pattern>/sms_otp_error.do</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>org_name.do</servlet-name>
+        <url-pattern>/org_name.do</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>select_org.do</servlet-name>
+        <url-pattern>/select_org.do</url-pattern>
     </servlet-mapping>
 
     <servlet-mapping>

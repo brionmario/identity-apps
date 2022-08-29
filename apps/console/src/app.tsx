@@ -21,10 +21,8 @@ import { AccessControlProvider } from "@wso2is/access-control";
 import { CommonHelpers, isPortalAccessGranted } from "@wso2is/core/helpers";
 import { RouteInterface, emptyIdentityAppsSettings } from "@wso2is/core/models";
 import {
-    setDeploymentConfigs,
     setI18nConfigs,
-    setServiceResourceEndpoints,
-    setUIConfigs
+    setServiceResourceEndpoints
 } from "@wso2is/core/store";
 import { LocalStorageUtils } from "@wso2is/core/utils";
 import {
@@ -40,6 +38,7 @@ import {
 } from "@wso2is/react-components";
 import has from "lodash-es/has";
 import isEmpty from "lodash-es/isEmpty";
+import * as moment from "moment";
 import React, { FunctionComponent, ReactElement, Suspense, useEffect, useState } from "react";
 import { Helmet } from "react-helmet";
 import { Trans } from "react-i18next";
@@ -53,13 +52,14 @@ import { AppConstants } from "./features/core/constants";
 import { history } from "./features/core/helpers";
 import {
     ConfigReducerStateInterface,
-    DeploymentConfigInterface,
     DocumentationLinksInterface,
     FeatureConfigInterface,
-    ServiceResourceEndpointsInterface,
-    UIConfigInterface
+    ServiceResourceEndpointsInterface
 } from "./features/core/models";
 import { AppState } from "./features/core/store";
+import "moment/locale/si";
+import "moment/locale/fr";
+
 
 /**
  * Main App component.
@@ -71,6 +71,7 @@ export const App: FunctionComponent<Record<string, never>> = (): ReactElement =>
 
     const userName: string = useSelector((state: AppState) => state.auth.username);
     const loginInit: boolean = useSelector((state: AppState) => state.auth.loginInit);
+    const isPrivilegedUser: boolean = useSelector((state: AppState) => state.auth.isPrivilegedUser);
     const config: ConfigReducerStateInterface = useSelector((state: AppState) => state.config);
     const allowedScopes: string = useSelector((state: AppState) => state?.auth?.allowedScopes);
     const appTitle: string = useSelector((state: AppState) => state?.config?.ui?.appTitle);
@@ -84,6 +85,14 @@ export const App: FunctionComponent<Record<string, never>> = (): ReactElement =>
     const { trySignInSilently, getDecodedIDToken, signOut } = useAuthContext();
 
     const featureConfig: FeatureConfigInterface = useSelector((state: AppState) => state?.config?.ui?.features);
+    const [ sessionTimedOut, setSessionTimedOut ] = useState<boolean>(false);
+
+    /**
+     * Set the value of Session Timed Out.
+     */
+    const handleSessionTimeOut = (timedOut: boolean): void => {
+        setSessionTimedOut(timedOut);
+    };
 
     /**
      * Set the deployment configs in redux state.
@@ -93,13 +102,18 @@ export const App: FunctionComponent<Record<string, never>> = (): ReactElement =>
     }, []);
 
     /**
+     * Set the initial locale in moment
+     */
+    useEffect(() => {
+        moment.locale("en");
+    }, []);
+
+    /**
      * Set the deployment configs in redux state.
      */
     useEffect(() => {
-        dispatch(setDeploymentConfigs<DeploymentConfigInterface>(Config.getDeploymentConfig()));
         dispatch(setServiceResourceEndpoints<ServiceResourceEndpointsInterface>(Config.getServiceResourceEndpoints()));
         dispatch(setI18nConfigs<I18nModuleOptionsInterface>(Config.getI18nConfig()));
-        dispatch(setUIConfigs<UIConfigInterface>(Config.getUIConfig()));
     }, [ AppConstants.getTenantQualifiedAppBasename() ]);
 
     /**
@@ -156,14 +170,14 @@ export const App: FunctionComponent<Record<string, never>> = (): ReactElement =>
             getDecodedIDToken()
                 .then((idToken: DecodedIDTokenPayload) => {
 
-                    if(has(idToken, "associated_tenants")) {
-                        // If there is an assocation, the user is likely unauthorized by other criteria.
+                    if(has(idToken, "associated_tenants") || isPrivilegedUser) {
+                        // If there is an association, the user is likely unauthorized by other criteria.
                         history.push({
                             pathname: AppConstants.getPaths().get("UNAUTHORIZED"),
                             search: "?error=" + AppConstants.LOGIN_ERRORS.get("ACCESS_DENIED")
                         });
                     } else {
-                        // If there is no assocation, the user should be redirected to creation flow.
+                        // If there is no association, the user should be redirected to creation flow.
                         history.push({
                             pathname: AppConstants.getPaths().get("CREATE_TENANT")
                         });
@@ -261,6 +275,8 @@ export const App: FunctionComponent<Record<string, never>> = (): ReactElement =>
                                                 onSessionTimeoutAbort={ handleSessionTimeoutAbort }
                                                 onSessionLogout={ handleSessionLogout }
                                                 onLoginAgain={ handleStayLoggedIn }
+                                                setSessionTimedOut={ handleSessionTimeOut }
+                                                sessionTimedOut={ sessionTimedOut }
                                                 modalOptions={ {
                                                     description: (
                                                         <Trans
@@ -326,12 +342,18 @@ export const App: FunctionComponent<Record<string, never>> = (): ReactElement =>
                                                                 ? (
                                                                     <link
                                                                         href={
-                                                                            `${window?.origin}${window?.publicPath}/libs/themes/${theme}/theme.${window?.themeHash}.min.css`
+                                                                            `${
+                                                                                window?.origin
+                                                                            }${
+                                                                                window?.publicPath
+                                                                            }/libs/themes/${
+                                                                                theme
+                                                                            }/theme.${ window?.themeHash }.min.css`
                                                                         }
                                                                         rel="stylesheet"
                                                                         type="text/css"
                                                                     />
-                                                                ) 
+                                                                )
                                                                 : null
                                                         }
                                                     </Helmet>

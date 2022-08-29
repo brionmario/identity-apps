@@ -25,26 +25,27 @@ import { useSelector } from "react-redux";
 import { Divider, Grid, SemanticWIDTHS } from "semantic-ui-react";
 import { AppState, ConfigReducerStateInterface } from "../../../../core";
 import {
+    AuthenticatorSettingsFormModes,
     CommonAuthenticatorFormInitialValuesInterface,
     FederatedAuthenticatorWithMetaInterface
 } from "../../../models";
 import {
-    composeValidators,
     DEFAULT_NAME_ID_FORMAT,
     DEFAULT_PROTOCOL_BINDING,
+    IDENTITY_PROVIDER_AUTHORIZED_REDIRECT_URL_LENGTH,
+    IDENTITY_PROVIDER_ENTITY_ID_LENGTH,
+    LOGOUT_URL_LENGTH,
+    SERVICE_PROVIDER_ENTITY_ID_LENGTH,
+    SSO_URL_LENGTH,
+    composeValidators,
     fastSearch,
     getAvailableNameIDFormats,
     getAvailableProtocolBindingTypes,
     getDigestAlgorithmOptionsMapped,
     getSignatureAlgorithmOptionsMapped,
     hasLength,
-    IDENTITY_PROVIDER_AUTHORIZED_REDIRECT_URL_LENGTH,
-    IDENTITY_PROVIDER_ENTITY_ID_LENGTH,
     isUrl,
-    LOGOUT_URL_LENGTH,
-    required,
-    SERVICE_PROVIDER_ENTITY_ID_LENGTH,
-    SSO_URL_LENGTH
+    required
 } from "../../utils/saml-idp-utils";
 
 /**
@@ -59,6 +60,12 @@ const I18N_TARGET_KEY = "console:develop.features.authenticationProvider.forms.a
  * {@link SamlAuthenticatorSettingsForm.defaultProps}.
  */
 interface SamlSettingsFormPropsInterface extends TestableComponentInterface {
+    /**
+     * The intended mode of the authenticator form.
+     * If the mode is "EDIT", the form will be used in the edit view and will rely on metadata for readonly states, etc.
+     * If the mode is "CREATE", the form will be used in the add wizards and will all the fields will be editable.
+     */
+    mode: AuthenticatorSettingsFormModes;
     authenticator: FederatedAuthenticatorWithMetaInterface;
     onSubmit: (values: CommonAuthenticatorFormInitialValuesInterface) => void;
     readOnly?: boolean;
@@ -116,7 +123,7 @@ export const SamlAuthenticatorSettingsForm: FunctionComponent<SamlSettingsFormPr
     const [ isUserIdInClaims, setIsUserIdInClaims ] = useState<boolean>(false);
     const [ isLogoutEnabled, setIsLogoutEnabled ] = useState<boolean>(false);
 
-    const authorizedRedirectURL: string = config?.deployment?.serverHost + "/commonauth" ;
+    const authorizedRedirectURL: string = config?.deployment?.customServerHost + "/commonauth" ;
 
     /**
      * ISAuthnReqSigned, IsLogoutReqSigned these two fields states will be used by other
@@ -181,13 +188,14 @@ export const SamlAuthenticatorSettingsForm: FunctionComponent<SamlSettingsFormPr
 
     useEffect(() => {
         const ifEitherOneOfThemIsChecked = isLogoutReqSigned || isAuthnReqSigned;
+        
         setIsAlgorithmsEnabled(ifEitherOneOfThemIsChecked);
     }, [ isLogoutReqSigned, isAuthnReqSigned ]);
 
     const onFormSubmit = (values: { [ key: string ]: any }): void => {
         const manualOverride = {
-            "IncludeProtocolBinding": includeProtocolBinding,
             "ISAuthnReqSigned": isAuthnReqSigned,
+            "IncludeProtocolBinding": includeProtocolBinding,
             "IsLogoutEnabled": isLogoutEnabled,
             "IsLogoutReqSigned": isLogoutReqSigned,
             "IsSLORequestAccepted": isSLORequestAccepted,
@@ -204,6 +212,7 @@ export const SamlAuthenticatorSettingsForm: FunctionComponent<SamlSettingsFormPr
                     .map((key) => ({ key, value: manualOverride[key] })) as any
             ]
         });
+
         onSubmit(authn);
     };
 
@@ -211,13 +220,15 @@ export const SamlAuthenticatorSettingsForm: FunctionComponent<SamlSettingsFormPr
         if (isLogoutReqSigned || isAuthnReqSigned) {
             return required;
         }
+
         return (/* No validations */) => void 0;
     };
 
     return (
-        <Form onSubmit={ onFormSubmit }
-              uncontrolledForm={ true }
-              initialValues={ formValues }>
+        <Form 
+            onSubmit={ onFormSubmit }
+            uncontrolledForm={ true }
+            initialValues={ formValues }>
 
             <Field.Input
                 required={ true }

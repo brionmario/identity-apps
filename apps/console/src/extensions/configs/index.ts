@@ -22,6 +22,8 @@ export * from "./common";
 export * from "./documentation";
 export * from "./identity-provider";
 export * from "./models";
+export * from "./scim";
 export * from "./server-configuration";
 export * from "./userstores";
 export * from "./user";
+export * from "./organization";

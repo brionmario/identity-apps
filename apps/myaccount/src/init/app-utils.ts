@@ -178,6 +178,7 @@ export const AppUtils = (function() {
                     : _config.clientID + "_" + this.getTenantName(),
                 clientOrigin: _config.clientOrigin,
                 clientOriginWithTenant: _config.clientOrigin + this.getTenantPath(true),
+                customServerHost: _config.customServerHost,
                 debug: _config.debug,
                 extensions: _config.extensions,
                 idpConfigs: this.resolveIdpConfigs(),
@@ -314,7 +315,7 @@ export const AppUtils = (function() {
 
             _config = _default;
 
-            const userConfigFile = _config.contextPath + "/deployment.config.json";
+            const userConfigFile = _config.contextPath + "deployment.config.json";
 
             loadUserConfig(userConfigFile, function(response) {
                 const configResponse = JSON.parse(response);

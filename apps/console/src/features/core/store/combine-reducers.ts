@@ -37,8 +37,10 @@ import {
     commonProfileReducerInitialState,
     commonRequestLoadersInitialState,
     globalReducer,
-    helpPanelReducer
+    helpPanelReducer,
+    organizationReducer
 } from "./reducers";
+import { routeReducer } from "./reducers/routes";
 import { applicationReducer } from "../../applications/store";
 import { commonAuthenticateReducerInitialState } from "../../authentication/store";
 import { identityProviderReducer } from "../../identity-providers/store";
@@ -75,9 +77,11 @@ export const reducers = combineReducers({
     helpPanel: helpPanelReducer,
     identityProvider: identityProviderReducer,
     loaders: commonRequestLoadersReducer(commonRequestLoadersInitialState),
+    organization: organizationReducer,
     profile: commonProfileReducer<
         ProfileInfoInterface,
         ProfileSchemaInterface[],
         LinkedAccountInterface[]
-        >(commonProfileReducerInitialState)
+        >(commonProfileReducerInitialState),
+    routes: routeReducer
 });

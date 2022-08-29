@@ -49,6 +49,7 @@ import { IdentityProviderManagementConstants } from "../constants";
 import { AuthenticatorMeta } from "../meta";
 import {
     AuthenticatorInterface,
+    AuthenticatorLabels,
     AuthenticatorTypes,
     IdentityProviderInterface,
     IdentityProviderListResponseInterface
@@ -168,6 +169,10 @@ const IdentityProvidersPage: FunctionComponent<IDPPropsInterface> = (props: IDPP
                         authenticator.tags = [ ...identityProviderConfig.filterFidoTags(authenticator?.tags) ];
                     }
 
+                    if (authenticator.id === IdentityProviderManagementConstants.MAGIC_LINK_AUTHENTICATOR_ID) {
+                        authenticator.tags = [ AuthenticatorLabels.PASSWORDLESS ];
+                    }
+
                     const authenticatorConfig: AuthenticatorExtensionsConfigInterface = get(
                         identityProviderConfig.authenticators,
                         authenticator.id
@@ -250,20 +255,26 @@ const IdentityProvidersPage: FunctionComponent<IDPPropsInterface> = (props: IDPP
                             authenticator.tags = [ ...identityProviderConfig.filterFidoTags(authenticator?.tags) ];
                         }
 
-                        // Filter out authenticators whose tags weren't in the filter query.
-                        // This is done since some of the authenticators like FIDO have tags modified by code.
-                        let tagFound = false;
-
-                        for (const tag of authenticator?.tags) {
-                            if (filter.includes(`tag eq ${ tag }`)) {
-                                tagFound = true;
-
-                                break;
-                            }
+                        if (authenticator.id === IdentityProviderManagementConstants.MAGIC_LINK_AUTHENTICATOR_ID) {
+                            authenticator.tags = [ AuthenticatorLabels.PASSWORDLESS ];
                         }
 
-                        if (!tagFound) {
-                            return;
+                        if (filter.startsWith("tag")) {
+                            // Filter out authenticators whose tags weren't in the filter query.
+                            // This is done since some of the authenticators like FIDO have tags modified by code.
+                            let tagFound = false;
+
+                            for (const tag of authenticator?.tags) {
+                                if (filter.includes(`tag eq ${ tag }`)) {
+                                    tagFound = true;
+
+                                    break;
+                                }
+                            }
+
+                            if (!tagFound) {
+                                return;
+                            }
                         }
 
                         if (authenticator.type === AuthenticatorTypes.LOCAL) {
@@ -446,6 +457,7 @@ const IdentityProvidersPage: FunctionComponent<IDPPropsInterface> = (props: IDPP
 
     return (
         <PageLayout
+            pageTitle="Connections"
             action={
                 (isIdPListRequestLoading ||
                     isAuthenticatorFetchRequestRequestLoading ||

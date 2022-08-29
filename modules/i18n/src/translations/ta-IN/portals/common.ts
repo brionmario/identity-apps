@@ -18,6 +18,11 @@
 
 import { CommonNS } from "../../../models";
 
+/**
+ * NOTES: No need to care about the max-len for this file since it's easier to
+ * translate the strings to other languages easily with editor translation tools.
+ */
+/* eslint-disable max-len */
 export const common: CommonNS = {
     access: "அணுகல்",
     actions: "செயல்கள்",
@@ -32,6 +37,7 @@ export const common: CommonNS = {
     approvalStatus: "அனுமதி நிலை",
     approve: "அனுமதி",
     apps: "செயலிகள்",
+    assignee: "ஒதுக்கப்பட்டவர்",
     assignees: "அளிக்கப்பட்டவர்கள்",
     authentication: "அங்கீகார",
     authenticator: "அங்கீகார",
@@ -122,6 +128,7 @@ export const common: CommonNS = {
     personalInfo: "பயனர் விபரம்",
     pin: "பொருத்து",
     pinned: "பொருத்தப்பட்டுள்ளது",
+    preview: "முன்னோட்ட",
     previous: "பின் செல்",
     priority: "முன்னுரிமை",
     privacy: "தனியுரிமை",

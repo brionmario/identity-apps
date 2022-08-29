@@ -18,14 +18,21 @@
 
 import { hasRequiredScopes, isFeatureEnabled } from "@wso2is/core/helpers";
 import { SBACInterface, TestableComponentInterface } from "@wso2is/core/models";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { List } from "semantic-ui-react";
-import { FIDOAuthenticator, SMSOTPAuthenticator, TOTPAuthenticator } from "./authenticators";
+import { BackupCodeAuthenticator, FIDOAuthenticator, SMSOTPAuthenticator, TOTPAuthenticator } from "./authenticators";
+import { getEnabledAuthenticators } from "../../api";
 import { AppConstants } from "../../constants";
-import { AlertInterface, FeatureConfigInterface } from "../../models";
+import { 
+    AlertInterface, 
+    AlertLevels,
+    EnabledAuthenticatorsInterface, 
+    FeatureConfigInterface 
+} from "../../models";
 import { AppState } from "../../store";
+import { getProfileInformation } from "../../store/actions";
 import { CommonUtils } from "../../utils";
 import { SettingsSection } from "../shared";
 
@@ -37,17 +44,83 @@ interface MfaProps extends SBACInterface<FeatureConfigInterface>, TestableCompon
     onAlertFired: (alert: AlertInterface) => void;
 }
 
-export const MultiFactorAuthentication: React.FunctionComponent<MfaProps> = (props: MfaProps): JSX.Element => {
-
+export const MultiFactorAuthentication: React.FunctionComponent<MfaProps> = (props: MfaProps): React.ReactElement => {
     const {
         onAlertFired,
         featureConfig,
         ["data-testid"]: testId
     } = props;
+
     const { t } = useTranslation();
+    const dispatch = useDispatch();
 
     const allowedScopes: string = useSelector((state: AppState) => state?.authenticationInformation?.scope);
     const isReadOnlyUser = useSelector((state: AppState) => state.authenticationInformation.profileInfo.isReadOnly);
+    const isBackupCodeForced: boolean = useSelector((state: AppState) => state?.config?.ui?.forceBackupCode);
+    const enableMFAUserWise: boolean = useSelector((state: AppState) => state?.config?.ui?.enableMFAUserWise);
+    
+    const [ enabledAuthenticators, setEnabledAuthenticators ] = useState<Array<string>>([]);
+    const [ isTOTPEnabled, setIsTOTPEnabled ] = useState<boolean>(false);
+    const [ isBackupCodesConfigured, setIsBackupCodesConfigured ] = useState<boolean>(false);
+    const [ initBackupCodeFlow, setInitBackupCodeFlow ] = useState<boolean>(false);
+
+    const translateKey: string = "myAccount:components.mfa.backupCode.";
+    const totpAuthenticatorName: string = "TOTP";
+    const backupCodeAuthenticatorName = "Backup Code Authenticator";
+
+    /**
+     * Fetch enabled authenticators and set to state.
+     */
+    useEffect(() => {
+        getEnabledAuthenticators()
+            .then((authenticators: EnabledAuthenticatorsInterface) => {
+                const authenticatorList: string[] = authenticators?.enabledAuthenticators?.split(",") ?? [];
+                                
+                setEnabledAuthenticators(authenticatorList);
+            })
+            .catch((errorMessage) => {
+                onAlertFired({
+                    description: t(translateKey + "notifications.retrieveAuthenticatorError.error.description", {
+                        error: errorMessage
+                    }),
+                    level: AlertLevels.ERROR,
+                    message: t(translateKey + "notifications.retrieveAuthenticatorError.error.message")
+                });
+            });
+    }, []);
+
+    /**
+     * Check whether the TOTP authenticator is enabled.
+     */
+    useEffect(() => {
+        setIsTOTPEnabled(enabledAuthenticators?.includes(totpAuthenticatorName) ?? false);
+        setIsBackupCodesConfigured(enabledAuthenticators?.includes(backupCodeAuthenticatorName) ?? false);
+    }, [ enabledAuthenticators ]);
+
+    /**
+     * Reset init backup code state, when the backup code setup flow is completed.
+     */
+    const handleBackupCodeFlowCompleted = (): void => {
+        setInitBackupCodeFlow(false);
+    };
+
+    /**
+     * Check if the login tenant is super tenant or not?
+     * 
+     * @returns True if login tenant is super tenant.
+     */
+    const isSuperTenantLogin = (): boolean => {
+        return AppConstants.getTenant() === AppConstants.getSuperTenant();
+    };
+
+    /**
+     * Update state when the authenticator list is updated.
+     * @param updatedAuthenticators Enabled authenticator list after updating
+     */
+    const handleEnabledAuthenticatorsUpdated = (updatedAuthenticators: Array<string>): void => {
+        setEnabledAuthenticators(updatedAuthenticators);
+        dispatch(getProfileInformation(true));
+    };
 
     return (
         <SettingsSection
@@ -91,7 +164,23 @@ export const MultiFactorAuthentication: React.FunctionComponent<MfaProps> = (pro
                         AppConstants.FEATURE_DICTIONARY.get("SECURITY_MFA_TOTP")
                     ) ? (
                         <List.Item className="inner-list-item">
-                            <TOTPAuthenticator onAlertFired={ onAlertFired } />
+                            <TOTPAuthenticator
+                                enabledAuthenticators={ enabledAuthenticators }
+                                onAlertFired={ onAlertFired }
+                                isBackupCodeForced={ isBackupCodeForced && enableMFAUserWise }
+                                isSuperTenantLogin={ isSuperTenantLogin() }
+                                onEnabledAuthenticatorsUpdated={ handleEnabledAuthenticatorsUpdated }
+                                triggerBackupCodesFlow={ () => setInitBackupCodeFlow(true) }
+                            />
+                            { isSuperTenantLogin() && isTOTPEnabled && isBackupCodesConfigured
+                                ? (
+                                    <BackupCodeAuthenticator 
+                                        onAlertFired={ onAlertFired }
+                                        initBackupCodeFlow={ initBackupCodeFlow }
+                                        onBackupFlowCompleted={ handleBackupCodeFlowCompleted }
+                                    />
+                                ) : null
+                            }
                         </List.Item>
                     ) : null }
             </List>

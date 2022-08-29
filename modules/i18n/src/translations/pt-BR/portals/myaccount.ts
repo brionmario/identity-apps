@@ -18,6 +18,11 @@
 
 import { MyAccountNS } from "../../../models";
 
+/**
+ * NOTES: No need to care about the max-len for this file since it's easier to
+ * translate the strings to other languages easily with editor translation tools.
+ */
+/* eslint-disable max-len */
 export const myAccount: MyAccountNS = {
     components: {
         accountRecovery: {
@@ -272,6 +277,10 @@ export const myAccount: MyAccountNS = {
                                 "novamente",
                             message: "Alterar erro de senha"
                         },
+                        passwordCaseRequirement: "Pelo menos uma letra maiúscula e minúscula",
+                        passwordCharRequirement: "Pelo menos um dos símbolos !@#$%^&*",
+                        passwordLengthRequirement: "Mais de 8 caracteres",
+                        passwordNumRequirement: "Pelo menos um numero",
                         submitError: {
                             description: "{{description}}",
                             message: "Alterar erro de senha"
@@ -577,17 +586,18 @@ export const myAccount: MyAccountNS = {
         },
         mfa: {
             authenticatorApp: {
-                addHint: "Adicionar novo código QR",
+                addHint: "Configurar",
                 configuredDescription: "Você pode usar códigos TOTP de seu aplicativo " +
                     "autenticador configurado para autenticação de dois fatores. " +
                     "Se você não tiver acesso ao aplicativo, pode configurar um novo aplicativo autenticador aqui",
-                deleteHint: "Exclui o código QR",
+                deleteHint: "Remover",
                 description: "Digitalize o código QR usando um aplicativo " +
                     "Authenticator para usar senhas de uso único baseadas " +
                     "em tempo (também conhecidas como TOTP) como um segundo " +
                     "fator ao fazer login em aplicativos.",
+                enableHint: "Ativar/desativar o autenticador TOTP",
                 heading: "App autenticador",
-                hint: "Mostrar o QR Code",
+                hint: "Visão",
                 modals: {
                     delete: {
                         heading: "Confirmação",
@@ -595,20 +605,25 @@ export const myAccount: MyAccountNS = {
                     },
                     done: "Sucesso! Agora você pode usar seu aplicativo de autenticação para autenticação de dois " +
                         "fatores",
-                    heading: "Set Up An Authenticator App",
+                    heading: "Configurar um aplicativo autenticador",
                     scan: {
                         additionNote: "O código QR foi adicionado com sucesso ao seu perfil",
                         authenticatorApps: "Authenticator Apps",
                         generate: "Gere um novo código",
                         heading: "Leia este QR Code usando um aplicativo Authenticator",
                         messageBody: "Você pode encontrar uma lista de aplicativos autenticadores disponíveis aqui.",
-                        messageHeading: "Não tem um aplicativo autenticador instalado?"
+                        messageHeading: "Não tem um aplicativo autenticador instalado?",
+                        regenerateConfirmLabel: "Confirme a regeneração de um novo código QR",
+                        regenerateWarning: {
+                            extended: "Quando você regenera um novo código QR, você deve digitalizá-lo e recriar o aplicativo Authenticator.Você não poderá mais fazer login com o código QR anterior.",
+                            generic: "Quando você regenera um novo código QR, você deve digitalizá-lo e recriar o aplicativo Authenticator.Sua configuração anterior não funcionará mais."
+                        }
                     },
                     toolTip: "Não tem um aplicativo? Baixe um aplicativo autenticador como o " +
-                        "Google Authenticator na <3> App Store </3> ou <3> Google Play </3>",
+                        "Google Authenticator na <1>App Store</1> ou <3>Google Play</3>",
                     verify: {
                         error: "Falha na verificação. Por favor, tente novamente.",
-                        heading: "Digite o código de verificação no aplicativo de autenticação",
+                        heading: "Insira o código gerado para verificação",
                         label: "Código de verificação",
                         placeholder: "Digite seu código de verificação",
                         reScan: "Verificar novamente",
@@ -627,6 +642,10 @@ export const myAccount: MyAccountNS = {
                             message: "Algo deu errado"
                         }
                     },
+                    deleteSuccess: {
+                        genericMessage: "Removido com sucesso",
+                        message: "Configuração TOTP removida com sucesso."
+                    },
                     initError: {
                         error: {
                             description: "{{error}}",
@@ -644,6 +663,126 @@ export const myAccount: MyAccountNS = {
                         },
                         genericError: {
                             description: "Erro ao tentar obter um novo código QR",
+                            message: "Algo deu errado"
+                        }
+                    },
+                    updateAuthenticatorError: {
+                        error: {
+                            description: "{{error}}",
+                            message: "Algo deu errado"
+                        },
+                        genericError: {
+                            description: "Ocorreu um erro ao tentar atualizar a lista de autenticadores habilitados",
+                            message: "Algo deu errado"
+                        }
+                    }
+                },
+                regenerate: "Regenerado"
+            },
+            backupCode: {
+                description: "Você pode usar códigos de backup para fazer login se não conseguir receber um código " 
+                    + "de verificação por meio do aplicativo autenticador.",
+                download: {
+                    heading: "SALVE SEUS CÓDIGOS DE BACKUP.",
+                    info1: "Você só pode usar cada código de backup uma vez.",
+                    info2: "Esses códigos foram gerados em ",
+                    subHeading: "Você pode usar esses códigos de backup para entrar no Asgardeo quando estiver " + 
+                        "longe do telefone. Mantenha esses códigos de backup em algum lugar seguro, mas acessível."
+                },
+                heading: "Códigos de backup",
+                modals: {
+                    actions: {
+                        copied: "Copiado",
+                        copy: "Copiar códigos",
+                        download: "Códigos de download",
+                        regenerate: "Regenerado"
+                    },
+                    description: "Use os códigos de backup para fazer login quando estiver longe do telefone. " + 
+                        "Você pode gerar mais quando todos são usados",
+                    generate: {
+                        description: "Todos os seus códigos de backup são usados. " + 
+                            "Permite gerar um novo conjunto de códigos de backup",
+                        heading: "Gerar"
+                    },
+                    heading: "Códigos de backup",
+                    info: "Cada código só pode ser usado uma vez",
+                    regenerate: {
+                        description: "Depois de gerar novos códigos, seus códigos antigos não funcionarão mais. " 
+                            + "Certifique-se de salvar os novos códigos assim que forem gerados.",
+                        heading: "Confirmação"
+                    },
+                    subHeading: "Senhas de uso único que você pode usar para fazer login",
+                    warn: "Esses códigos aparecerão apenas uma vez. Certifique-se de salvá-los agora e armazená-los " 
+                        + "em algum lugar seguro, mas acessível."
+                },
+                notifications: {
+                    deleteError: {
+                        error: {
+                            description: "{{error}}",
+                            message: "Algo deu errado"
+                        },
+                        genericError: {
+                            description: "Ocorreu um erro ao excluir códigos de backup",
+                            message: "Algo deu errado"
+                        }
+                    },
+                    downloadError: {
+                        error: {
+                            description: "{{error}}",
+                            message: "Algo deu errado"
+                        },
+                        genericError: {
+                            description: "Ocorreu um erro ao tentar baixar os códigos de backup",
+                            message: "Algo deu errado"
+                        }
+                    },
+                    downloadSuccess: {
+                        genericMessage: {
+                            description: "Os códigos de backup foram baixados com sucesso.",
+                            message: "Códigos de backup baixados com sucesso."
+                        },
+                        message: {
+                            description: "{{message}}",
+                            message: "Códigos de backup baixados com sucesso."
+                        }
+                    },
+                    refreshError: {
+                        error: {
+                            description: "{{error}}",
+                            message: "Algo deu errado"
+                        },
+                        genericError: {
+                            description: "Ocorreu um erro ao tentar gerar novos códigos de backup",
+                            message: "Algo deu errado"
+                        }
+                    },
+                    retrieveAuthenticatorError: {
+                        error: {
+                            description: "{{error}}",
+                            message: "Algo deu errado"
+                        },
+                        genericError: {
+                            description: "Ocorreu um erro ao tentar obter a lista de autenticadores habilitados",
+                            message: "Algo deu errado"
+                        }
+                    },
+                    retrieveError: {
+                        error: {
+                            description: "{{error}}",
+                            message: "Algo deu errado"
+                        },
+                        genericError: {
+                            description: "Ocorreu um erro ao recuperar os códigos de backup",
+                            message: "Algo deu errado"
+                        }
+                    },
+                    updateAuthenticatorError: {
+                        error: {
+                            description: "{{error}}",
+                            message: "Algo deu errado"
+                        },
+                        genericError: {
+                            description: "Ocorreu um erro ao tentar atualizar a lista de autenticadores habilitados",
                             message: "Algo deu errado"
                         }
                     }
@@ -808,7 +947,10 @@ export const myAccount: MyAccountNS = {
                 },
                 profileStatus: {
                     completionPercentage: "A conclusão do seu perfil está em {{percentage}}%",
+                    description: "Gerencie seu perfil",
                     header: "Seu perfil do {{productName}}",
+                    profileText: "Detalhes do seu perfil pessoal",
+                    readOnlyDescription:"Ver seu perfil",
                     userSourceText: "(Conectado via {{source}})"
                 }
             }
@@ -854,7 +996,7 @@ export const myAccount: MyAccountNS = {
                     para1: "Esta política descreve como o WSO2 IS captura suas informações pessoais, os propósitos " +
                         "de coleta e informações sobre a retenção de suas informações pessoais.",
                     para2: "Observe que esta política é apenas para referência e é aplicável ao software como um " +
-                        "roduto. A WSO2 Inc. e seus desenvolvedores não têm acesso às informações mantidas no " +
+                        "roduto. A WSO2 LLC. e seus desenvolvedores não têm acesso às informações mantidas no " +
                         "WSO2 IS. Consulte a seção <1> isenção de responsabilidade </1> para obter mais informações.",
                     para3: "Entidades, organizações ou indivíduos que controlam o uso e a administração do WSO2 IS " +
                         "devem criar suas próprias políticas de privacidade, definindo a maneira pela qual os dados " +
@@ -1059,6 +1201,7 @@ export const myAccount: MyAccountNS = {
                     inputs: {
                         date: {
                             validations: {
+                                futureDateError: "A data inserida no campo {{field}} é inválida.",
                                 invalidFormat: "Insira um {{fieldName}} válido no formato AAAA-MM-DD."
                             }
                         }
@@ -1383,6 +1526,8 @@ export const myAccount: MyAccountNS = {
             subTitle: "",
             title: "Política de Privacidade do Servidor de Identidade WSO2"
         },
+        readOnlyProfileBanner: "Seu perfil não pode ser modificado neste portal. " +
+            "Entre em contato com seu administrador para obter mais detalhes.",
         security: {
             subTitle: "Atualize as configurações para tornar sua conta segura",
             title: "Segurança"

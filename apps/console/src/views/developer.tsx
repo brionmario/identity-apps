@@ -16,7 +16,6 @@
  * under the License.
  */
 
-import { AccessControlUtils } from "@wso2is/access-control";
 import { AlertInterface, ChildRouteInterface, ProfileInfoInterface, RouteInterface } from "@wso2is/core/models";
 import { initializeAlertSystem } from "@wso2is/core/store";
 import { RouteUtils as CommonRouteUtils, CommonUtils } from "@wso2is/core/utils";
@@ -30,16 +29,16 @@ import {
     SidePanel,
     TopLoadingBar
 } from "@wso2is/react-components";
-import cloneDeep from "lodash-es/cloneDeep";
 import isEmpty from "lodash-es/isEmpty";
 import React, {
-    ErrorInfo,
     FunctionComponent,
     ReactElement,
     ReactNode,
     Suspense,
     SyntheticEvent,
+    useCallback,
     useEffect,
+    useRef,
     useState
 } from "react";
 import { useTranslation } from "react-i18next";
@@ -56,21 +55,19 @@ import {
     AppViewTypes,
     ConfigReducerStateInterface,
     EventPublisher,
-    FeatureConfigInterface,
     Footer,
     Header,
     ProtectedRoute,
     RouteUtils,
     StrictAppViewTypes,
     UIConstants,
-    getAdminViewRoutes,
     getDeveloperViewRoutes,
     getEmptyPlaceholderIllustrations,
     getSidePanelMiscIcons,
     history,
     useUIElementSizes
 } from "../features/core";
-import { setActiveView, setDeveloperVisibility, setManageVisibility } from "../features/core/store/actions";
+import { setActiveView } from "../features/core/store/actions";
 
 /**
  * Developer View Prop types.
@@ -105,15 +102,18 @@ export const DeveloperView: FunctionComponent<DeveloperViewPropsInterface> = (
 
     const config: ConfigReducerStateInterface = useSelector((state: AppState) => state.config);
     const profileInfo: ProfileInfoInterface = useSelector((state: AppState) => state.profile.profileInfo);
-    const featureConfig: FeatureConfigInterface = useSelector((state: AppState) => state.config.ui.features);
     const alert: AlertInterface = useSelector((state: AppState) => state.global.alert);
     const alertSystem: System = useSelector((state: AppState) => state.global.alertSystem);
     const isAJAXTopLoaderVisible: boolean = useSelector((state: AppState) => state.global.isAJAXTopLoaderVisible);
     const allowedScopes: string = useSelector((state: AppState) => state?.auth?.allowedScopes);
     const activeView: AppViewTypes = useSelector((state: AppState) => state.global.activeView);
+    const filteredRoutes: RouteInterface[] = useSelector(
+        (state: AppState) => state.routes.developeRoutes.filteredRoutes
+    );
+    const sanitizedRoutes: RouteInterface[] = useSelector(
+        (state: AppState) => state.routes.developeRoutes.sanitizedRoutes
+    );
 
-    const [ manageRoutes ] = useState<RouteInterface[]>(getAdminViewRoutes());
-    const [ filteredRoutes, setFilteredRoutes ] = useState<RouteInterface[]>(getDeveloperViewRoutes());
     const [
         selectedRoute,
         setSelectedRoute
@@ -122,6 +122,11 @@ export const DeveloperView: FunctionComponent<DeveloperViewPropsInterface> = (
     const [ isMobileViewport, setIsMobileViewport ] = useState<boolean>(false);
 
     const eventPublisher: EventPublisher = EventPublisher.getInstance();
+
+    const organizationLoading: boolean
+            = useSelector((state: AppState) => state?.organization?.getOrganizationLoading);
+
+    const initLoad = useRef(true);
 
     /**
      * Make sure `DEVELOP` tab is highlighted when this layout is used.
@@ -133,65 +138,36 @@ export const DeveloperView: FunctionComponent<DeveloperViewPropsInterface> = (
         }
 
         dispatch(setActiveView(StrictAppViewTypes.DEVELOP));
-    }, []);
+    }, [ dispatch, activeView ]);
 
-    /**
-     * Listen to location changes and set the active route accordingly.
-     */
     useEffect(() => {
-
-        if (isEmpty(filteredRoutes) || !location?.pathname) {
+        if (!location?.pathname) {
             return;
+        }
+
+        if (initLoad.current) {
+            // Try to handle any un-expected routing issues. Returns a void if no issues are found.
+            RouteUtils.gracefullyHandleRouting(
+                filteredRoutes,
+                AppConstants.getDeveloperViewBasePath(),
+                location.pathname
+            );
+            initLoad.current = false;
         }
 
         setSelectedRoute(CommonRouteUtils.getInitialActiveRoute(location.pathname, filteredRoutes));
-    }, [ location?.pathname, filteredRoutes ]);
+    }, [ location.pathname, filteredRoutes ]);
 
     useEffect(() => {
-
-        // Allowed scopes is never empty. Wait until it's defined to filter the routes.
-        if (isEmpty(allowedScopes)) {
-            return;
-        }
-
-        let routes: RouteInterface[] = CommonRouteUtils.filterEnabledRoutes<FeatureConfigInterface>(
-            getDeveloperViewRoutes(),
-            featureConfig,
-            allowedScopes,
-            commonConfig.checkForUIResourceScopes);
-
-        // TODO : Remove this logic once getting started pages are removed.
-        if (routes.length === 2
-            && routes.filter(route => route.id === AccessControlUtils.DEVELOP_GETTING_STARTED_ID).length > 0
-                && routes.filter(route => route.id === "404").length > 0) {
-            routes = routes.filter(route => route.id === "404");
-        }
-
-        const controlledRoutes = AccessControlUtils.getAuthenticatedRoutes(
-            routes, allowedScopes, featureConfig, commonConfig.checkForUIResourceScopes);
-        const sanitizedManageRoutes: RouteInterface[] = CommonRouteUtils.sanitizeForUI(cloneDeep(manageRoutes));
-
-        const tab: string = AccessControlUtils.getDisabledTab(
-            sanitizedManageRoutes, filteredRoutes, allowedScopes, featureConfig, commonConfig.checkForUIResourceScopes);
-
-        if (tab === "MANAGE") {
-            dispatch(setManageVisibility(false));
-        } else if (tab === "DEVELOP") {
-            dispatch(setDeveloperVisibility(false));
-        }
-
-        // Try to handle any un-expected routing issues. Returns a void if no issues are found.
-        RouteUtils.gracefullyHandleRouting(routes, AppConstants.getDeveloperViewBasePath(), location.pathname);
-
-        // Filter the routes and get only the enabled routes defined in the app config.
-        setFilteredRoutes(routes);
-
         if (!isEmpty(profileInfo)) {
             return;
         }
 
         dispatch(getProfileInformation());
-    }, [ featureConfig, getDeveloperViewRoutes, allowedScopes ]);
+    }, [
+        dispatch,
+        profileInfo
+    ]);
 
     /**
      * Handles side panel toggle click.
@@ -285,25 +261,16 @@ export const DeveloperView: FunctionComponent<DeveloperViewPropsInterface> = (
      *
      * @return {RouteInterface[]} Set of resolved routes.
      */
-    const resolveRoutes = (): RouteInterface[] => {
+    const resolveRoutes = useCallback((): RouteInterface[] => {
         const resolvedRoutes = [];
 
-        const recurse = (routesArr): void => {
-            routesArr.forEach((route, key) => {
-                if (route.path) {
-                    resolvedRoutes.push(renderRoute(route, key));
-                }
-
-                if (route.children && route.children instanceof Array && route.children.length > 0) {
-                    recurse(route.children);
-                }
-            });
-        };
-
-        recurse([ ...filteredRoutes ]);
+        filteredRoutes.forEach((route, key) => {
+            resolvedRoutes.push(renderRoute(route, key));
+        });
 
         return resolvedRoutes;
-    };
+    }, [ filteredRoutes ]);
+
 
     /**
      * Handles alert system initialize.
@@ -340,7 +307,7 @@ export const DeveloperView: FunctionComponent<DeveloperViewPropsInterface> = (
                     onSidePanelToggleClick={ handleSidePanelToggleClick }
                 />
             ) }
-            sidePanel={ (
+            sidePanel={  (
                 <SidePanel
                     ordered
                     categorized={
@@ -358,7 +325,8 @@ export const DeveloperView: FunctionComponent<DeveloperViewPropsInterface> = (
                     mobileSidePanelVisibility={ mobileSidePanelVisibility }
                     onSidePanelItemClick={ handleSidePanelItemClick }
                     onSidePanelPusherClick={ handleSidePanelPusherClick }
-                    routes={ CommonRouteUtils.sanitizeForUI(cloneDeep(filteredRoutes), AppUtils.getHiddenRoutes()) }
+                    routes={ !organizationLoading
+                        && sanitizedRoutes }
                     selected={ selectedRoute }
                     translationHook={ t }
                     allowedScopes={ allowedScopes }
@@ -388,14 +356,6 @@ export const DeveloperView: FunctionComponent<DeveloperViewPropsInterface> = (
                         title={ t("console:common.placeholders.brokenPage.title") }
                     />
                 ) }
-                handleError={ (error: Error, errorInfo: ErrorInfo) => {
-                    eventPublisher.publish("error-captured-error-boundary", {
-                        error: error?.name,
-                        errorInfo: errorInfo?.componentStack,
-                        stack: error?.stack,
-                        type: "developer-view"
-                    });
-                } }
             >
                 <Suspense fallback={ <ContentLoader dimmer={ false } /> }>
                     <Switch>

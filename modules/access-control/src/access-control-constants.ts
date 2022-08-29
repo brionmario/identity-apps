@@ -27,7 +27,6 @@ export class AccessControlConstants {
      * Private constructor to avoid object instantiation from outside
      * the class.
      *
-     * @hideconstructor
      */
     /* eslint-disable @typescript-eslint/no-empty-function */
     private constructor() { }
@@ -256,5 +255,80 @@ export class AccessControlConstants {
      * Secret Management Delete/Remove Scope.
      */
     public static readonly SECRET_DELETE: string = "internal_secret_mgt_delete";
+
+    /**
+     * User stores feature permission
+     */
+    public static readonly USER_STORE: string = "userStores";
+
+    /**
+     * User stores read permission
+     */
+    public static readonly USER_STORE_READ: string = "userStores:read";
+
+    /**
+     * User stores write permission
+     */
+    public static readonly USER_STORE_WRITE: string = "userStores:write";
+
+    /**
+     * User stores edit permission
+     */
+    public static readonly USER_STORE_EDIT: string = "userStores:edit";
+
+    /**
+     * User stores delete permission
+     */
+    public static readonly USER_STORE_DELETE: string = "userStores:delete";
+
+    /**
+     * Organization feature permission.
+     */
+    public static readonly ORGANIZATION: string = "organization";
+
+    /**
+     * Organization write permission.
+     */
+    public static readonly ORGANIZATION_WRITE: string = "organization:write";
+
+    /**
+     * Organization edit permission.
+     */
+    public static readonly ORGANIZATION_EDIT: string = "organization:edit";
+
+    /**
+     * Organization delete permission.
+     */
+    public static readonly ORGANIZATION_DELETE: string = "organization:delete";
+
+    /**
+     * Organization read permission.
+     */
+    public static readonly ORGANIZATION_READ: string = "organization:read";
+
+    /**
+     * Organization feature permission.
+     */
+    public static readonly ORGANIZATION_ROLES: string = "organization_roles";
+
+    /**
+     * Organization write permission.
+     */
+    public static readonly ORGANIZATION_ROLES_WRITE: string = "organization_roles:write";
+
+    /**
+     * Organization edit permission.
+     */
+    public static readonly ORGANIZATION_ROLES_EDIT: string = "organization_roles:edit";
+
+    /**
+     * Organization delete permission.
+     */
+    public static readonly ORGANIZATION_ROLES_DELETE: string = "organization_roles:delete";
+
+    /**
+     * Organization read permission.
+     */
+    public static readonly ORGANIZATION_ROLES_READ: string = "organization_roles:read";
 
 }

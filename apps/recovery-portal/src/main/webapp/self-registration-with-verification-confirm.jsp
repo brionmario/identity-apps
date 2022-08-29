@@ -19,7 +19,10 @@
 
 <%@ page import="org.apache.commons.lang.StringUtils" %>
 <%@ page import="org.wso2.carbon.base.MultitenantConstants" %>
+<%@ page import="org.wso2.carbon.core.SameSiteCookie" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.util.IdentityManagementEndpointConstants" %>
+<%@ page import="org.wso2.carbon.identity.recovery.IdentityRecoveryConstants" %>
+<%@ page import="org.wso2.carbon.identity.base.IdentityRuntimeException" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.util.IdentityManagementEndpointUtil" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.util.client.PreferenceRetrievalClient" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.util.client.api.SelfRegisterApi" %>
@@ -30,14 +33,16 @@
 <%@ page import="java.util.ArrayList" %>
 <%@ page import="java.util.List" %>
 <%@ page import="javax.ws.rs.HttpMethod" %>
-<jsp:directive.include file="includes/localize.jsp"/>
-<jsp:directive.include file="tenant-resolve.jsp"/>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.util.client.model.User" %>
 <%@ page import="org.wso2.carbon.identity.recovery.util.Utils" %>
 <%@ page import="org.wso2.carbon.core.util.SignatureUtil" %>
 <%@ page import="org.json.simple.JSONObject" %>
 <%@ page import="javax.servlet.http.Cookie" %>
 <%@ page import="java.util.Base64" %>
+
+<jsp:directive.include file="includes/localize.jsp"/>
+<jsp:directive.include file="tenant-resolve.jsp"/>
+
 <%
     boolean error = IdentityManagementEndpointUtil.getBooleanValue(request.getAttribute("error"));
     String errorMsg = IdentityManagementEndpointUtil.getStringValue(request.getAttribute("errorMsg"));
@@ -56,6 +61,22 @@
     // check the validity of the link before redirecting users.
     if (StringUtils.equals(httpMethod, HttpMethod.HEAD)) {
         response.setStatus(response.SC_OK);
+        return;
+    }
+
+    try {
+        if (StringUtils.isNotBlank(callback) && !Utils.validateCallbackURL(callback, tenantDomain,
+            IdentityRecoveryConstants.ConnectorConfig.SELF_REGISTRATION_CALLBACK_REGEX)) {
+            request.setAttribute("error", true);
+            request.setAttribute("errorMsg", IdentityManagementEndpointUtil.i18n(recoveryResourceBundle,
+                "Callback.url.format.invalid"));
+            request.getRequestDispatcher("error.jsp").forward(request, response);
+            return;
+        }
+    } catch (IdentityRuntimeException e) {
+        request.setAttribute("error", true);
+        request.setAttribute("errorMsg", e.getMessage());
+        request.getRequestDispatcher("error.jsp").forward(request, response);
         return;
     }
 
@@ -103,15 +124,10 @@
             cookieValueInJson.put("content", content);
             String signature = Base64.getEncoder().encodeToString(SignatureUtil.doSignature(content));
             cookieValueInJson.put("signature", signature);
-            Cookie cookie = new Cookie(AUTO_LOGIN_COOKIE_NAME,
-                    Base64.getEncoder().encodeToString(cookieValueInJson.toString().getBytes()));
-            cookie.setPath("/");
-            cookie.setSecure(true);
-            cookie.setMaxAge(300);
-            if (StringUtils.isNotBlank(cookieDomain)) {
-                cookie.setDomain(cookieDomain);
-            }
-            response.addCookie(cookie);
+            String cookieValue = Base64.getEncoder().encodeToString(cookieValueInJson.toString().getBytes());
+
+            IdentityManagementEndpointUtil.setCookie(request, response, AUTO_LOGIN_COOKIE_NAME, cookieValue,
+                300, SameSiteCookie.NONE, "/", cookieDomain);
             request.setAttribute("isAutoLoginEnabled", true);
         }
 

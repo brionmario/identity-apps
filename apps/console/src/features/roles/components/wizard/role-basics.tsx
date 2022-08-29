@@ -16,15 +16,16 @@
  * under the License.
  */
 
-import { getUserStoreList } from "@wso2is/core/api";
 import { TestableComponentInterface } from "@wso2is/core/models";
 import { Field, Forms, Validation } from "@wso2is/forms";
 import React, { FunctionComponent, ReactElement, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Grid, GridColumn, GridRow } from "semantic-ui-react";
 import { searchRoleList } from "../..";
+import { store } from "../../../core";
 import { SharedUserStoreConstants } from "../../../core/constants";
 import { SharedUserStoreUtils } from "../../../core/utils";
+import { getUserStoreList } from "../../../userstores/api";
 import {
     PRIMARY_DOMAIN
 } from "../../constants";
@@ -107,7 +108,7 @@ export const RoleBasics: FunctionComponent<RoleBasicProps> = (props: RoleBasicPr
 
         getUserStoreList()
             .then((response) => {
-                if (storeOptions === []) {
+                if (storeOptions.length === 0) {
                     storeOptions.push(storeOption);
                 }
                 response.data.map((store, index) => {
