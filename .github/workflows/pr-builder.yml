@@ -35,7 +35,7 @@ jobs:
 
             for i in "${!changed_files_arr[@]}"
             do
-              echo "$i: ${changed_files_arr[$i]}"
+              echo "$(i+1): ${changed_files_arr[$i]}"
             done
 
             printf -v formatted '%s,' "${changed_files_arr[@]}"
