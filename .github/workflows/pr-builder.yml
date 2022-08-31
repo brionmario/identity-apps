@@ -75,9 +75,10 @@ jobs:
 
             echo -e "🥬 Starting analyzing the changed files with ESLint.."
 
-            pnpm eslint --ext .js,.jsx,.ts,.tsx --max-warnings=0 --format json --output-file result.json --resolve-plugins-relative-to . -- ${formatted%}
-
             echo "${which pnpm eslint}"
+            echo "${which eslint}"
+
+            pnpm eslint --ext .js,.jsx,.ts,.tsx --max-warnings=0 --resolve-plugins-relative-to . --format json --output-file result.json -- ${formatted%}
 
       - name: ⏳ Lint All Files
         id: lint-with-eslint
