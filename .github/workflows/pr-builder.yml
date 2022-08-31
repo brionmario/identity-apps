@@ -33,7 +33,7 @@ jobs:
 
             echo "\n🦄 Here are the changed files..."
 
-            for i in "${arr_variable[@]}"
+            for i in "${changed_files_arr[@]}"
             do
               echo "$i"
             done
