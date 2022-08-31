@@ -62,19 +62,19 @@ jobs:
             raw_changed_files=$(gh pr diff ${{ github.event.pull_request.number }} --name-only)
             changed_files_arr=($raw_changed_files)
 
-            echo "============ Here are the changed files ============ "
+            echo -e "\n============ Here are the changed files ============\n"
 
             for i in "${!changed_files_arr[@]}"
             do
-              echo -e "$((++i)): ${changed_files_arr[$i]}"
+              echo -e "$((++i)): ${changed_files_arr[$i]}\n"
             done
 
-            echo "============     END OF CHANGED FILES    ============ "
+            echo -e "\n============     END OF CHANGED FILES    ============\n"
 
             printf -v formatted '%s,' "${changed_files_arr[@]}"
             echo "${formatted%,}"
 
-            echo -e "Starting analyzing the changed files with ESLint..."
+            echo -e "\nStarting analyzing the changed files with ESLint...\n"
 
             pnpm eslint --ext .js,.jsx,.ts,.tsx --max-warnings=0  --resolve-plugins-relative-to . -- {"${formatted%,}"}
 
