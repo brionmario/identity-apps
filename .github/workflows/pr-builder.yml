@@ -29,9 +29,15 @@ jobs:
         id: lint-with-eslint
         run: |
             raw_changed_files=$(gh pr diff ${{ github.event.pull_request.number }} --name-only)
-            echo "🦄 Here are the changed files..."
-            echo "${raw_changed_files}"
             changed_files_arr=($raw_changed_files)
+
+            echo "\n🦄 Here are the changed files..."
+
+            for i in "${arr_variable[@]}"
+            do
+              echo "$i"
+            done
+
             printf -v formatted '%s,' "${changed_files_arr[@]}"
             echo "${formatted%,}"
   lint:
