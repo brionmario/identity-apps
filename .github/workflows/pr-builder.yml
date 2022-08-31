@@ -30,7 +30,7 @@ jobs:
         run: |
             raw_changed_files=$(gh pr diff ${{ github.event.pull_request.number }} --name-only)
             changed_files_arr=($raw_changed_files)
-            printf -v formatted '%s,' "${($changed_files_arr)[@]}"
+            printf -v formatted '%s,' "${changed_files_arr[@]}"
             echo "${formatted%,}"
   lint:
     name: ⬣ ESLint (STATIC ANALYSIS)
