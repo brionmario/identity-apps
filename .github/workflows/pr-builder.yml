@@ -66,11 +66,13 @@ jobs:
 
             for i in "${!changed_files_arr[@]}"
             do
-              echo "$((i++)): ${changed_files_arr[$i]}"
+              echo "$((++i)): ${changed_files_arr[$i]}"
             done
 
             printf -v formatted '%s,' "${changed_files_arr[@]}"
             echo "${formatted%,}"
+
+            pnpm eslint --ext .js,.jsx,.ts,.tsx  --resolve-plugins-relative-to . --  {"${formatted%,}"}
 
       - name: ⏳ Lint
         id: lint-with-eslint
