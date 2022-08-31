@@ -27,7 +27,10 @@ jobs:
 
       - name: ⏳ Lint
         id: lint-with-eslint
-        run: gh pr diff ${{ github.event.pull_request.number }} --name-only
+        run: |
+            gh pr diff ${{ github.event.pull_request.number }} --name-only
+            output=$(gh pr diff ${{ github.event.pull_request.number }} --name-only)
+            echo "output: ${output}"
   lint:
     name: ⬣ ESLint (STATIC ANALYSIS)
     if: ${{ false }}
