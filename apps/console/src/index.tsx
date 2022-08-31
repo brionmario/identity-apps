@@ -18,8 +18,8 @@
 
 import "core-js/stable";
 import "regenerator-runtime/runtime";
-import { AuthParams, AuthProvider, SPAUtils } from "@asgardeo/auth-react";
 import { AppConstants as CommonAppConstants } from "@wso2is/core/constants";
+import { AuthParams, AuthProvider, SPAUtils } from "@asgardeo/auth-react";
 import { AuthenticateUtils as CommonAuthenticateUtils, ContextUtils, StringUtils } from "@wso2is/core/utils";
 import axios from "axios";
 import * as React from "react";
