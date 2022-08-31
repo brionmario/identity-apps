@@ -62,7 +62,7 @@ jobs:
             raw_changed_files=$(gh pr diff ${{ github.event.pull_request.number }} --name-only)
             changed_files_arr=($raw_changed_files)
 
-            echo -e "\n============ Here are the changed files ============\n"
+            echo -e "\n============ ☸️ Here are the changed files ☸️ ============\n"
 
             for i in "${!changed_files_arr[@]}"
             do
@@ -73,11 +73,11 @@ jobs:
 
             printf -v formatted '%s,' "${changed_files_arr[@]}"
 
-            echo -e "\nStarting analyzing the changed files with ESLint...\n"
+            echo -e "🥬 Starting analyzing the changed files with ESLint.."
 
             pnpm eslint --ext .js,.jsx,.ts,.tsx --max-warnings=0  --resolve-plugins-relative-to . -- {"${formatted%,}"}
 
-      - name: ⏳ Lint
+      - name: ⏳ Lint All Files
         id: lint-with-eslint
         run: pnpm lint
 
