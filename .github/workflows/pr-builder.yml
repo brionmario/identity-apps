@@ -31,11 +31,11 @@ jobs:
             raw_changed_files=$(gh pr diff ${{ github.event.pull_request.number }} --name-only)
             changed_files_arr=($raw_changed_files)
 
-            echo "\n🦄 Here are the changed files..."
+            echo "🦄 Here are the changed files..."
 
-            for i in "${changed_files_arr[@]}"
+            for i in "${!changed_files_arr[@]}"
             do
-              echo "$i"
+              echo "$i: ${changed_files_arr[$i]}"
             done
 
             printf -v formatted '%s,' "${changed_files_arr[@]}"
