@@ -75,8 +75,7 @@ jobs:
 
             echo -e "🥬 Starting analyzing the changed files with ESLint.."
 
-            echo "${which pnpm eslint}"
-            echo "${which eslint}"
+            pwd
 
             pnpm eslint --ext .js,.jsx,.ts,.tsx --max-warnings=0 --resolve-plugins-relative-to . --format json --output-file result.json -- ${formatted%}
 
