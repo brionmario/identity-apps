@@ -30,9 +30,8 @@ jobs:
         run: |
             output=$(gh pr diff ${{ github.event.pull_request.number }} --name-only)
             var=($output)
-            echo 1. ${var[0]}
-            echo 2. ${var[1]}
-            echo 3. ${var[2]}
+            printf -v joined '%s,' "${var[@]}"
+            echo "${joined%,}"
   lint:
     name: ⬣ ESLint (STATIC ANALYSIS)
     if: ${{ false }}
