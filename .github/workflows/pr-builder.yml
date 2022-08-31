@@ -14,32 +14,6 @@ env:
   GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
 jobs:
-  exp:
-    name: ⬣ ESLint (STATIC ANALYSIS)
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        node-version: [ lts/* ]
-    steps:
-      - name: ⬇️ Checkout
-        id: checkout
-        uses: actions/checkout@v2.3.3
-
-      - name: ⏳ Lint
-        id: lint-with-eslint
-        run: |
-            raw_changed_files=$(gh pr diff ${{ github.event.pull_request.number }} --name-only)
-            changed_files_arr=($raw_changed_files)
-
-            echo "🦄 Here are the changed files..."
-
-            for i in "${!changed_files_arr[@]}"
-            do
-              echo "$(i+1): ${changed_files_arr[$i]}"
-            done
-
-            printf -v formatted '%s,' "${changed_files_arr[@]}"
-            echo "${formatted%,}"
   lint:
     name: ⬣ ESLint (STATIC ANALYSIS)
     if: ${{ false }}
@@ -82,6 +56,22 @@ jobs:
       - name: 🧩 Install Dependencies
         id: install-dependencies
         run: pnpm install --no-frozen-lockfile
+
+      - name: 🦄 Lint Changed Files
+        id: lint-changed-with-eslint
+        run: |
+            raw_changed_files=$(gh pr diff ${{ github.event.pull_request.number }} --name-only)
+            changed_files_arr=($raw_changed_files)
+
+            echo "🦄 Here are the changed files..."
+
+            for i in "${!changed_files_arr[@]}"
+            do
+              echo "$((i++)): ${changed_files_arr[$i]}"
+            done
+
+            printf -v formatted '%s,' "${changed_files_arr[@]}"
+            echo "${formatted%,}"
 
       - name: ⏳ Lint
         id: lint-with-eslint
