@@ -28,10 +28,9 @@ jobs:
       - name: ⏳ Lint
         id: lint-with-eslint
         run: |
-            output=$(gh pr diff ${{ github.event.pull_request.number }} --name-only)
-            var=($output)
-            printf -v joined '%s,' "${var[@]}"
-            echo "${joined%,}"
+            changed_files=$(gh pr diff ${{ github.event.pull_request.number }} --name-only)
+            printf -v formatted '%s,' "${($changed_files)[@]}"
+            echo "${formatted%,}"
   lint:
     name: ⬣ ESLint (STATIC ANALYSIS)
     if: ${{ false }}
