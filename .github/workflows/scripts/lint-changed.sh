@@ -36,14 +36,14 @@ ESLINT_SUPPORTED_EXT=(js jsx ts tsx)
 command -v pnpm >/dev/null 2>&1 || { echo >&2 "Error: $0 script requires 'pnpm' for buid.  Aborting as not found."; exit 1; }
 command -v gh >/dev/null 2>&1 || { echo >&2 "Error: $0 script requires 'gh' to call GitHub APIs.  Aborting as not found."; exit 1; }
 
-raw_changed_files=$(gh pr diff $GITHUB_PR_NUMBER --name-only)
-changed_files=($raw_changed_files)
+raw_changed_files=$(gh pr diff "$GITHUB_PR_NUMBER" --name-only)
+changed_files=("$raw_changed_files")
 supported_files=()
 
 for file in "${changed_files[@]}"; do
     for ext in "${ESLINT_SUPPORTED_EXT[@]}"; do
         if [[ $file == *$ext ]]; then
-            supported_files+=($file)
+            supported_files+=("$file")
         fi
     done
 done
