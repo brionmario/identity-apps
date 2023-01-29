@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2019, WSO2 LLC. (https://www.wso2.com). All Rights Reserved.
+ * Copyright (c) 2023, WSO2 LLC. (https://www.wso2.com). All Rights Reserved.
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -16,5 +16,20 @@
  * under the License.
  */
 
-import("./bootstrap");
+import React, { ReactElement } from "react";
+import AccountSecurityWidget from "./selfcare-account-security-overview-widget";
 
+const App = (): ReactElement => (
+    <div>
+        <h1>Account Security Widget</h1>
+        <br />
+        <AccountSecurityWidget
+            onPrimaryActionClick={ () => {
+                // eslint-disable-next-line no-alert
+                alert("AccountSecurityWidget primary action clicked...");
+            } }
+        />
+    </div>
+);
+
+export default App;

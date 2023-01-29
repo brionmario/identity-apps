@@ -1,7 +1,7 @@
 /**
- * Copyright (c) 2019, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2023, WSO2 LLC. (https://www.wso2.com). All Rights Reserved.
  *
- * WSO2 Inc. licenses this file to you under the Apache License,
+ * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License.
  * You may obtain a copy of the License at
@@ -18,15 +18,20 @@
 
 import { hasRequiredScopes, isFeatureEnabled } from "@wso2is/core/helpers";
 import { TestableComponentInterface } from "@wso2is/core/models";
-import React, { FunctionComponent, ReactElement } from "react";
+import React, { FunctionComponent, LazyExoticComponent, ReactElement } from "react";
 import { useSelector } from "react-redux";
 import { Divider, Grid, SemanticWIDTHS } from "semantic-ui-react";
-import { AccountSecurityWidget, AccountStatusWidget, ConsentManagementWidget, UserSessionsWidget } from "./widgets";
+import { AccountStatusWidget, ConsentManagementWidget, UserSessionsWidget } from "./widgets";
 import { ProfileWidget } from "./widgets/profile-widget";
-import { AppConstants } from "../../constants";
+import { AppConstants, CommonConstants } from "../../constants";
+import { commonConfig } from "../../extensions";
+import { history } from "../../helpers";
 import { FeatureConfigInterface } from "../../models";
 import { AppState } from "../../store";
-import { commonConfig } from "../../extensions";
+
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore
+const SelfcareAccountSecurityOverviewWidget: LazyExoticComponent = React.lazy(() =>import("selfcare_account_security_overview_widget/SelfcareAccountSecurityOverviewWidget"));
 
 /**
  * Prop types for the overview edit component.
@@ -93,7 +98,11 @@ export const Overview: FunctionComponent<OverviewPropsInterface> = (
                         AppConstants.FEATURE_DICTIONARY.get("OVERVIEW_ACCOUNT_SECURITY"))
                     && (
                         <Grid.Column computer={ widthComputer } mobile={ widthMobile }>
-                            <AccountSecurityWidget/>
+                            <SelfcareAccountSecurityOverviewWidget
+                                onPrimaryActionClick={ () => history.push(
+                                    AppConstants.getPaths().get("SECURITY") + "#" + CommonConstants.ACCOUNT_SECURITY
+                                ) }
+                            />
                         </Grid.Column>
                     )
                 }

@@ -33,6 +33,7 @@ import webpack, {
     WebpackPluginInstance
 } from "webpack";
 import { BundleAnalyzerPlugin } from "webpack-bundle-analyzer";
+import { dependencies } from "./package.json";
 import DeploymentConfig from "./src/public/deployment.config.json";
 
 /**
@@ -492,6 +493,57 @@ module.exports = (config: WebpackOptionsNormalized, context: NxWebpackContextInt
         open: baseHref,
         port: devServerPort
     };
+
+    // FIXME: Start Refactoring from here.
+
+    // config.stats = {
+    //     chunks: true,
+    //     modules: false,
+    //     chunkModules: true,
+    //     chunkOrigins: true
+    // }
+
+    config.plugins.push(
+        new webpack.container.ModuleFederationPlugin({
+            name: 'app1',
+            remotes: {
+              'app2': 'app2@https://localhost:9000/myaccount/plugins/is.selfcare.profile/remoteEntry.js',
+              'selfcare_account_security_overview_widget': 'selfcare_account_security_overview_widget@https://localhost:9000/myaccount/plugins/is.selfcare.account.security.overview.widget/remoteEntry.js',
+            },
+            shared: {
+                ...dependencies,
+                react: {
+                    eager: true,
+                    singleton: true,
+                    requiredVersion: dependencies["react"]
+                },
+                "react-dom": {
+                    eager: true,
+                    singleton: true,
+                    requiredVersion: dependencies["react-dom"]
+                },
+                "react-i18next": {
+                    requiredVersion: dependencies["react-i18next"]
+                },
+                "ua-parser-js": {
+                    requiredVersion: false,
+                    eager: true
+                },
+                "@babel/polyfill": {
+                    requiredVersion: dependencies["@babel/polyfill"],
+                    eager: true },
+                '@wso2is/forms': { requiredVersion: false, eager: undefined },
+                '@wso2is/react-components': { requiredVersion: false, eager: undefined },
+                '@wso2is/core': { requiredVersion: false, eager: undefined },
+            }
+        })
+    );
+
+    config.optimization = {
+        runtimeChunk: false,
+    };
+
+    // FIXME: End Refactoring from here.
 
     return config;
 };
