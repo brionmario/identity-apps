@@ -1,0 +1,12 @@
+{
+    "name": "@wso2/is.selfcare.shared.context",
+    "version": "0.0.0",
+    "private": true,
+    "main": "./src/index.ts",
+    "devDependencies": {
+        "@types/react": "18.0.19",
+        "@types/react-dom": "18.0.6",
+        "react": "^18.2.0",
+        "react-dom": "^18.2.0"
+    }
+}

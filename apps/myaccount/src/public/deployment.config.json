@@ -1,35 +1,33 @@
 {
-    "appBaseName": "myaccount",
+    "appBaseName": "",
     "appBaseNameForHistoryAPI": "/",
-    "clientID": "MY_ACCOUNT",
+    "clientID": "nwM6HeIuCrbXPJmRHCt9rdMrtQka",
     "debug": false,
     "idpConfigs": {
         "enablePKCE": true,
-        "clockTolerance": 300,
         "responseMode": "query",
-        "scope": ["SYSTEM"],
-        "serverOrigin": "https://localhost:9443",
+        "scope": [ "SYSTEM", "internal_login" ],
+        "serverOrigin": "https://api.asgardeo.io/t/brionmario",
         "storage": "webWorker",
-        "authorizeEndpointURL": "${serverOrigin}/${tenantPrefix}/${superTenantDomain}/oauth2/authorize?ut=${userTenantDomain}",
-        "logoutEndpointURL": "${serverOrigin}/${tenantPrefix}/${superTenantDomain}/oidc/logout",
-        "oidcSessionIFrameEndpointURL": "${serverOrigin}/${tenantPrefix}/${superTenantDomain}/oidc/checksession"
+        "clockTolerance": 300
     },
     "i18nResourcePath": "",
-    "isSaas": true,
+    "isSaas": false,
     "loginCallbackPath": "",
     "logoutCallbackPath": "",
-    "serverOrigin": "https://localhost:9443",
+    "serverOrigin": "https://api.asgardeo.io/t/brionmario",
     "routePaths": {
         "home": "/overview",
         "login": "",
         "logout": "/logout"
     },
     "session": {
-        "userIdleTimeOut": 600,
-        "userIdleWarningTimeOut": 580,
+        "userIdleWarningTimeOut": 1740,
         "sessionRefreshTimeOut": 300,
-        "checkSessionInterval": 3
+        "userIdleTimeOut": 1800,
+        "checkSessionInterval": 5
     },
+    "superTenantProxy" : "a",
     "tenantResolutionStrategy": "id_token",
     "ui": {
         "appCopyright": "WSO2 Identity Server ${copyright} ${year}",

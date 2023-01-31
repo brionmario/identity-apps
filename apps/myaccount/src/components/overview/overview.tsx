@@ -32,6 +32,9 @@ import { AppState } from "../../store";
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
 const SelfcareAccountSecurityOverviewWidget: LazyExoticComponent = React.lazy(() =>import("selfcare_account_security_overview_widget/SelfcareAccountSecurityOverviewWidget"));
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore
+const SelfcareConsentManagementOverviewWidget: LazyExoticComponent = React.lazy(() =>import("selfcare_consent_management_overview_widget/SelfcareConsentManagementOverviewWidget"));
 
 /**
  * Prop types for the overview edit component.
@@ -168,7 +171,11 @@ export const Overview: FunctionComponent<OverviewPropsInterface> = (
                         AppConstants.FEATURE_DICTIONARY.get("OVERVIEW_CONSENTS"))
                     && (
                         <Grid.Column computer={ widthComputer } mobile={ widthMobile }>
-                            <ConsentManagementWidget/>
+                            <SelfcareConsentManagementOverviewWidget
+                                onPrimaryActionClick={ () => history.push(
+                                    AppConstants.getPaths().get("SECURITY") + "#" + CommonConstants.CONSENTS_CONTROL
+                                ) }
+                            />
                         </Grid.Column>
                     )
                 }

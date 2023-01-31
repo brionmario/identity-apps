@@ -20,7 +20,7 @@ import { IdentifiableComponentInterface } from "@wso2is/core/models";
 import classNames from "classnames";
 import React, { FunctionComponent, MouseEvent, PropsWithChildren } from "react";
 import { Card, Grid, Header, Icon, List, Menu, Message, SemanticICONS } from "semantic-ui-react";
-import { GenericIcon } from "../icon";
+import { GenericIcon, GenericIconProps } from "../icon";
 import { useMediaContext } from "../media";
 
 /**
@@ -33,6 +33,7 @@ export interface SectionProps extends IdentifiableComponentInterface {
     connectorEnabled?: boolean;
     header: string;
     icon?: any;
+    iconOptions?: Omit<GenericIconProps, "icon">;
     onPrimaryActionClick?: (e: MouseEvent<HTMLElement> | KeyboardEvent) => void;
     onSecondaryActionClick?: (e: MouseEvent<HTMLElement> | KeyboardEvent) => void;
     placeholder?: string;
@@ -64,6 +65,7 @@ export const Section: FunctionComponent<PropsWithChildren<SectionProps>> = (
         connectorEnabled,
         header,
         icon,
+        iconOptions,
         onPrimaryActionClick,
         onSecondaryActionClick,
         placeholder,
@@ -156,15 +158,16 @@ export const Section: FunctionComponent<PropsWithChildren<SectionProps>> = (
                                                 icon
                                                     ? (
                                                         <GenericIcon
-                                                            size="micro"
+                                                            size={ iconOptions?.size ?? "micro" }
                                                             icon={ icon }
-                                                            inline
-                                                            transparent
-                                                            shape={ "square" }
-                                                            style={ {
+                                                            inline={ iconOptions?.inline ?? true }
+                                                            transparent={ iconOptions?.transparent ?? true }
+                                                            shape={ iconOptions?.shape ?? "square" }
+                                                            style={ iconOptions?.style ?? {
                                                                 "display": "inline",
                                                                 "verticalAlign": "text-bottom"
                                                             } }
+                                                            { ...iconOptions }
                                                         />
                                                     )
                                                     : null

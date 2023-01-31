@@ -148,7 +148,8 @@
             },
             "configurations": {
                 "development": {
-                    "buildTarget": "myaccount:build-base:development"
+                    "buildTarget": "myaccount:build-base:development",
+                    "verbose": true
                 },
                 "production": {
                     "buildTarget": "myaccount:build-base:production",
@@ -161,7 +162,7 @@
             "options": {
                 "commands": [
                     "pnpm nx run myaccount:serve-prepare",
-                    "pnpm nx run myaccount:serve-base"
+                    "pnpm nx run myaccount:serve-base -- --verbose"
                 ],
                 "cwd": "apps/myaccount",
                 "parallel": false
