@@ -46,7 +46,7 @@ const SelfcareConsentManagementOverviewWidget: FunctionComponent<SelfcareConsent
             <Section
                 className="overview"
                 data-componentid={ `${componentId}-settings-section` }
-                header={ "Change 2" }
+                header={ t("myAccount:components.overview.widgets.consentManagement.header") }
                 description={ t("myAccount:components.overview.widgets.consentManagement.description") }
                 primaryAction={ t("myAccount:components.overview.widgets.consentManagement.actionTitles.manage") }
                 icon={ ConsentIcon }

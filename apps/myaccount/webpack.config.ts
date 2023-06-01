@@ -507,7 +507,7 @@ module.exports = (config: WebpackOptionsNormalized, context: NxWebpackContextInt
         new webpack.container.ModuleFederationPlugin({
             name: 'app1',
             remotes: {
-              'selfcare_account_security_overview_widget': 'selfcare_account_security_overview_widget@https://federated-myaccount.vercel.app/plugins/is.selfcare.account.security.overview.widget/remoteEntry.js',
+              'selfcare_account_security_overview_widget': 'selfcare_account_security_overview_widget@https://localhost:9000/myaccount/plugins/is.selfcare.account.security.overview.widget/remoteEntry.js',
               'selfcare_consent_management_overview_widget': 'selfcare_consent_management_overview_widget@https://myaccount-plugins.vercel.app/plugins/is.selfcare.consent.management.overview.widget/remoteEntry.js',
             },
             shared: {
