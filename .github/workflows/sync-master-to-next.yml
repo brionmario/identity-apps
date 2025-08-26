@@ -46,24 +46,6 @@ jobs:
           git config user.name "wso2-iam-bot"
           git config user.email "wso2-iam-bot@users.noreply.github.com"
 
-      - name: Create or update sync branch
-        run: |
-          # Fetch latest from both branches
-          git fetch origin $TARGET_BRANCH
-          git fetch origin $SYNC_BRANCH || true  # Sync branch might not exist yet
-
-          # Check if sync branch exists on remote
-          if git ls-remote --heads origin $SYNC_BRANCH | grep -q $SYNC_BRANCH; then
-            echo "Sync branch $SYNC_BRANCH exists, checking out and updating from target"
-            git checkout $SYNC_BRANCH
-            # Reset to target branch to start fresh for this PR
-            git reset --hard origin/$TARGET_BRANCH
-          else
-            echo "Creating new sync branch $SYNC_BRANCH from target"
-            git checkout $TARGET_BRANCH
-            git checkout -b "$SYNC_BRANCH"
-          fi
-
       - name: Get merged PR information
         id: trigger_info
         run: |
@@ -82,6 +64,24 @@ jobs:
           COMMITS=$(gh pr view $PR_NUMBER --json commits -q '.commits[].oid' | tr '\n' ' ')
           echo "COMMITS_TO_SYNC=$COMMITS" >> $GITHUB_ENV
           echo "Commits from PR #$PR_NUMBER: $COMMITS"
+
+      - name: Create or update sync branch
+        run: |
+          # Fetch latest from both branches
+          git fetch origin $TARGET_BRANCH
+          git fetch origin $SYNC_BRANCH || true  # Sync branch might not exist yet
+
+          # Check if sync branch exists on remote
+          if git ls-remote --heads origin $SYNC_BRANCH | grep -q $SYNC_BRANCH; then
+            echo "Sync branch $SYNC_BRANCH exists, checking out and updating from target"
+            git checkout $SYNC_BRANCH
+            # Reset to target branch to start fresh for this PR
+            git reset --hard origin/$TARGET_BRANCH
+          else
+            echo "Creating new sync branch $SYNC_BRANCH from target"
+            git checkout $TARGET_BRANCH
+            git checkout -b "$SYNC_BRANCH"
+          fi
 
       - name: Cherry-pick commits (skip [skip ci], workflow files, pom.xml only)
         run: |
