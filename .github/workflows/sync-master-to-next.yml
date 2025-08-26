@@ -32,20 +32,6 @@ jobs:
           repository: ${{ github.repository }}
           run-id: ${{ github.event.workflow_run.id }}
 
-      - name: 📝 Display PR Number
-        run: cat ./PR_NUMBER
-
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-          fetch-tags: true
-
-      - name: Set up Git
-        run: |
-          git config user.name "wso2-iam-bot"
-          git config user.email "wso2-iam-bot@users.noreply.github.com"
-
       - name: Get merged PR information
         id: trigger_info
         run: |
@@ -60,6 +46,19 @@ jobs:
           echo "SYNC_BRANCH=$SYNC_BRANCH" >> $GITHUB_ENV
           echo "Sync branch for PR #$PR_NUMBER: $SYNC_BRANCH"
 
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+
+      - name: Set up Git
+        run: |
+          git config user.name "wso2-iam-bot"
+          git config user.email "wso2-iam-bot@users.noreply.github.com"
+
+      - name: Get PR commits
+        run: |
           # Get all commits from this specific PR
           COMMITS=$(gh pr view $PR_NUMBER --json commits -q '.commits[].oid' | tr '\n' ' ')
           echo "COMMITS_TO_SYNC=$COMMITS" >> $GITHUB_ENV
