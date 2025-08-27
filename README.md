@@ -8,7 +8,6 @@ End-user apps in WSO2 Identity Server
 [![Twitter](https://img.shields.io/twitter/follow/wso2.svg?style=social&label=Follow)](https://twitter.com/intent/follow?screen_name=wso2)
 
 ---
-
 ## Table of Content
 
 <!-- Execute: `node scripts/generate-markdown-toc.js README.md` -->
