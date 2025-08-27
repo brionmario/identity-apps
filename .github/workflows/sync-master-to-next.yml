@@ -44,19 +44,44 @@ jobs:
           github-token: ${{ env.GH_TOKEN }}
           repository: ${{ github.repository }}
           run-id: ${{ github.event.workflow_run.id }}
+      - name: List files in workspace (debug)
+        if: github.event_name == 'workflow_run'
+        run: |
+          echo "Working directory: $(pwd)"
+          echo "Listing files after artifact download:"
+          ls -la
+          echo "Looking for pr-number directory:"
+          find . -name "*pr*" -type f -o -name "*PR*" -type f 2>/dev/null || echo "No pr/PR files found"
+          echo "Full recursive listing:"
+          ls -lR
 
       - name: Prepare PR_NUMBER file
         if: github.event_name == 'workflow_run'
         run: |
-          # Move the PR_NUMBER file from the artifact directory to the root
-          if [ -f pr-number/PR_NUMBER ]; then
+          # Find and move the PR_NUMBER file from wherever it was extracted
+          if [ -f PR_NUMBER ]; then
+            echo "PR_NUMBER already exists in root"
+          elif [ -f pr-number/PR_NUMBER ]; then
+            echo "Found PR_NUMBER in pr-number directory, moving to root"
             mv pr-number/PR_NUMBER ./PR_NUMBER
-          elif [ -f pr-number/pr-number ]; then
-            mv pr-number/pr-number ./PR_NUMBER
+          elif [ -f ./PR_NUMBER ]; then
+            echo "PR_NUMBER found in current directory"
           else
-            echo "PR_NUMBER file not found in artifact"
-            exit 1
+            echo "Searching for PR_NUMBER file..."
+            find . -name "PR_NUMBER" -type f 2>/dev/null | head -1 | while read file; do
+              echo "Found PR_NUMBER at: $file"
+              cp "$file" ./PR_NUMBER
+              break
+            done
+            if [ ! -f ./PR_NUMBER ]; then
+              echo "PR_NUMBER file not found anywhere"
+              echo "Available files:"
+              find . -type f -name "*" | head -20
+              exit 1
+            fi
           fi
+          echo "Final PR_NUMBER content:"
+          cat ./PR_NUMBER
 
       - name: Checkout repository
         uses: actions/checkout@v4
