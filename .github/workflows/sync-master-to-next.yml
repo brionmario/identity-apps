@@ -29,7 +29,6 @@ jobs:
   sync:
     runs-on: ubuntu-latest
     if: >
-      github.repository == 'wso2/identity-apps' &&
       (
         (github.event_name == 'workflow_run' &&
          github.event.workflow_run.event == 'pull_request' &&
@@ -45,6 +44,25 @@ jobs:
           github-token: ${{ env.GH_TOKEN }}
           repository: ${{ github.repository }}
           run-id: ${{ github.event.workflow_run.id }}
+
+      - name: Prepare PR_NUMBER file
+        if: github.event_name == 'workflow_run'
+        run: |
+          # Move the PR_NUMBER file from the artifact directory to the root
+          if [ -f pr-number/PR_NUMBER ]; then
+            mv pr-number/PR_NUMBER ./PR_NUMBER
+          elif [ -f pr-number/pr-number ]; then
+            mv pr-number/pr-number ./PR_NUMBER
+          else
+            echo "PR_NUMBER file not found in artifact"
+            exit 1
+          fi
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          fetch-tags: true
 
       - name: Get merged PR information
         id: trigger_info
@@ -129,13 +147,6 @@ jobs:
           echo "SYNC_BRANCH=$SYNC_BRANCH" >> $GITHUB_ENV
           echo "Sync branch for PR #$PR_NUMBER: $SYNC_BRANCH"
 
-      - name: Checkout repository
-        if: steps.trigger_info.outputs.skip_sync != 'true'
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-          fetch-tags: true
-
       - name: Set up Git
         if: steps.trigger_info.outputs.skip_sync != 'true'
         run: |
@@ -187,18 +198,18 @@ jobs:
               git cherry-pick --skip
             }
           done
-
-      - name: Push sync branch (force update)
-        if: steps.trigger_info.outputs.skip_sync != 'true'
-        run: git push origin HEAD:"$SYNC_BRANCH" --force
-
-      - name: Fetch target branch
-        if: steps.trigger_info.outputs.skip_sync != 'true'
-        run: git fetch origin $TARGET_BRANCH:$TARGET_BRANCH || true
-
-      - name: Create or update pull request
-        if: steps.trigger_info.outputs.skip_sync != 'true'
-        run: |
+                - name: Prepare PR_NUMBER file
+                  if: github.event_name == 'workflow_run'
+                  run: |
+                    # Move the PR_NUMBER file from the artifact directory to the root
+                    if [ -f pr-number/PR_NUMBER ]; then
+                      mv pr-number/PR_NUMBER ./PR_NUMBER
+                    elif [ -f pr-number/pr-number ]; then
+                      mv pr-number/pr-number ./PR_NUMBER
+                    else
+                      echo "PR_NUMBER file not found in artifact"
+                      exit 1
+                    fi
           COMMITS_ON_BRANCH=$(git log ${{ env.TARGET_BRANCH }}..HEAD --oneline || true)
           if [ -z "$COMMITS_ON_BRANCH" ]; then
             echo "No commits to sync. Skipping PR creation."
