@@ -36,6 +36,12 @@ jobs:
         github.event_name == 'workflow_dispatch'
       )
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+
       - name: 📥 Download PR Number Artifact (for workflow_run)
         if: github.event_name == 'workflow_run'
         uses: actions/download-artifact@v4
@@ -44,16 +50,6 @@ jobs:
           github-token: ${{ env.GH_TOKEN }}
           repository: ${{ github.repository }}
           run-id: ${{ github.event.workflow_run.id }}
-      - name: List files in workspace (debug)
-        if: github.event_name == 'workflow_run'
-        run: |
-          echo "Working directory: $(pwd)"
-          echo "Listing files after artifact download:"
-          ls -la
-          echo "Looking for pr-number directory:"
-          find . -name "*pr*" -type f -o -name "*PR*" -type f 2>/dev/null || echo "No pr/PR files found"
-          echo "Full recursive listing:"
-          ls -lR
 
       - name: Prepare PR_NUMBER file
         if: github.event_name == 'workflow_run'
@@ -72,6 +68,16 @@ jobs:
               echo "Found PR_NUMBER at: $file"
               cp "$file" ./PR_NUMBER
               break
+            done
+            if [ ! -f ./PR_NUMBER ]; then
+              echo "PR_NUMBER file not found anywhere"
+              echo "Available files:"
+              find . -type f -name "*" | head -20
+              exit 1
+            fi
+          fi
+          echo "Final PR_NUMBER content:"
+          cat ./PR_NUMBER
             done
             if [ ! -f ./PR_NUMBER ]; then
               echo "PR_NUMBER file not found anywhere"
