@@ -36,6 +36,12 @@ jobs:
         github.event_name == 'workflow_dispatch'
       )
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+
       - name: 📥 Download PR Number Artifact (for workflow_run)
         if: github.event_name == 'workflow_run'
         uses: actions/download-artifact@v4
@@ -45,24 +51,75 @@ jobs:
           repository: ${{ github.repository }}
           run-id: ${{ github.event.workflow_run.id }}
 
+      - name: 🔍 Debug Artifact Contents
+        if: github.event_name == 'workflow_run'
+        run: |
+          echo "=== Current working directory ==="
+          pwd
+          echo "=== Contents of current directory ==="
+          ls -la
+          echo "=== Looking for pr-number directory ==="
+          find . -name "pr-number*" -type d
+          echo "=== Contents of pr-number directory (if exists) ==="
+          if [ -d "pr-number" ]; then
+            ls -la pr-number/
+            echo "=== File contents in pr-number directory ==="
+            find pr-number/ -type f -exec sh -c 'echo "=== {} ==="; cat "{}"' \;
+          else
+            echo "pr-number directory not found"
+          fi
+          echo "=== Looking for any PR_NUMBER files ==="
+          find . -name "*PR_NUMBER*" -o -name "*pr-number*" -o -name "*pr_number*"
+
       - name: Prepare PR_NUMBER file
         if: github.event_name == 'workflow_run'
         run: |
-          # Move the PR_NUMBER file from the artifact directory to the root
-          if [ -f pr-number/PR_NUMBER ]; then
-            mv pr-number/PR_NUMBER ./PR_NUMBER
-          elif [ -f pr-number/pr-number ]; then
-            mv pr-number/pr-number ./PR_NUMBER
+          # Enhanced file extraction with multiple fallback methods
+          PR_FILE=""
+          
+          # Method 1: Check common artifact locations
+          if [ -f "pr-number/PR_NUMBER" ]; then
+            PR_FILE="pr-number/PR_NUMBER"
+            echo "Found PR_NUMBER at: pr-number/PR_NUMBER"
+          elif [ -f "pr-number/pr-number" ]; then
+            PR_FILE="pr-number/pr-number"
+            echo "Found pr-number at: pr-number/pr-number"
+          elif [ -f "PR_NUMBER" ]; then
+            PR_FILE="PR_NUMBER"
+            echo "Found PR_NUMBER at root"
           else
-            echo "PR_NUMBER file not found in artifact"
+            # Method 2: Search for any file containing PR number
+            echo "Searching for PR number files..."
+            FOUND_FILES=$(find . -name "*PR_NUMBER*" -o -name "*pr-number*" -o -name "*pr_number*" | head -5)
+            if [ -n "$FOUND_FILES" ]; then
+              echo "Found potential PR files:"
+              echo "$FOUND_FILES"
+              # Use the first found file
+              PR_FILE=$(echo "$FOUND_FILES" | head -1)
+              echo "Using file: $PR_FILE"
+            else
+              echo "❌ No PR_NUMBER file found anywhere in the artifact"
+              echo "Available files and directories:"
+              find . -type f | head -20
+              exit 1
+            fi
+          fi
+          
+          # Extract PR number and store it
+          if [ -n "$PR_FILE" ] && [ -f "$PR_FILE" ]; then
+            PR_NUMBER=$(cat "$PR_FILE" | tr -d '\n\r' | tr -d ' ')
+            if [ -n "$PR_NUMBER" ] && [ "$PR_NUMBER" != "null" ]; then
+              echo "$PR_NUMBER" > ./PR_NUMBER
+              echo "✅ Successfully extracted PR number: $PR_NUMBER"
+              echo "PR_NUMBER_EXTRACTED=$PR_NUMBER" >> $GITHUB_ENV
+            else
+              echo "❌ PR file found but contains invalid data: '$PR_NUMBER'"
+              exit 1
+            fi
+          else
+            echo "❌ PR file not accessible: $PR_FILE"
             exit 1
           fi
-
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-          fetch-tags: true
 
       - name: Get merged PR information
         id: trigger_info
