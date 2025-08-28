@@ -9,7 +9,7 @@ End-user apps in WSO2 Identity Server
 
 ---
 
-## Table of Content
+## Table of Contentmbvm
 
 <!-- Execute: `node scripts/generate-markdown-toc.js README.md` -->
 <!-- TOC:START - Do not remove or modify this section -->
