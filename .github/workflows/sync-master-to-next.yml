@@ -255,18 +255,11 @@ jobs:
               git cherry-pick --skip
             }
           done
-                - name: Prepare PR_NUMBER file
-                  if: github.event_name == 'workflow_run'
-                  run: |
-                    # Move the PR_NUMBER file from the artifact directory to the root
-                    if [ -f pr-number/PR_NUMBER ]; then
-                      mv pr-number/PR_NUMBER ./PR_NUMBER
-                    elif [ -f pr-number/pr-number ]; then
-                      mv pr-number/pr-number ./PR_NUMBER
-                    else
-                      echo "PR_NUMBER file not found in artifact"
-                      exit 1
-                    fi
+
+      - name: Create PR to sync to target branch
+        if: steps.trigger_info.outputs.skip_sync != 'true'
+        run: |
+          # Check if there are any commits to sync
           COMMITS_ON_BRANCH=$(git log ${{ env.TARGET_BRANCH }}..HEAD --oneline || true)
           if [ -z "$COMMITS_ON_BRANCH" ]; then
             echo "No commits to sync. Skipping PR creation."
