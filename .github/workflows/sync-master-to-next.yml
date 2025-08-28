@@ -259,12 +259,45 @@ jobs:
       - name: Create PR to sync to target branch
         if: steps.trigger_info.outputs.skip_sync != 'true'
         run: |
+          # Debug: Show current branch and target branch info
+          echo "=== Branch Information ==="
+          echo "Current branch: $(git branch --show-current)"
+          echo "Target branch: ${{ env.TARGET_BRANCH }}"
+          echo "Sync branch: $SYNC_BRANCH"
+          
+          # Ensure we're on the sync branch
+          git checkout "$SYNC_BRANCH" || {
+            echo "Failed to checkout sync branch: $SYNC_BRANCH"
+            exit 1
+          }
+          
           # Check if there are any commits to sync
-          COMMITS_ON_BRANCH=$(git log ${{ env.TARGET_BRANCH }}..HEAD --oneline || true)
-          if [ -z "$COMMITS_ON_BRANCH" ]; then
-            echo "No commits to sync. Skipping PR creation."
+          echo "=== Checking for commits to sync ==="
+          git log --oneline "${{ env.TARGET_BRANCH }}..HEAD" || echo "No commits found"
+          COMMITS_ON_BRANCH=$(git log "${{ env.TARGET_BRANCH }}..HEAD" --oneline 2>/dev/null || true)
+          
+          # Count commits more reliably
+          COMMIT_COUNT=0
+          if [ -n "$COMMITS_ON_BRANCH" ]; then
+            COMMIT_COUNT=$(echo "$COMMITS_ON_BRANCH" | wc -l | tr -d ' ')
+          fi
+          
+          echo "Commits found: $COMMIT_COUNT"
+          echo "Commit details:"
+          echo "$COMMITS_ON_BRANCH"
+          
+          if [ "$COMMIT_COUNT" -eq 0 ] || [ -z "$COMMITS_ON_BRANCH" ]; then
+            echo "✅ No commits to sync. The changes from PR #$PR_NUMBER already exist in ${{ env.TARGET_BRANCH }}."
+            echo "This is normal if the PR was already synced or if the target branch already contains these changes."
             exit 0
           fi
+          
+          # Push the sync branch to remote before creating PR
+          echo "=== Pushing sync branch to remote ==="
+          git push origin "$SYNC_BRANCH" --force || {
+            echo "Failed to push sync branch to remote"
+            exit 1
+          }
 
           # Check for existing open PR for this sync branch
           EXISTING_PR=$(gh pr list \
@@ -295,14 +328,42 @@ jobs:
           \`\`\`"
 
           if [ -n "$EXISTING_PR" ]; then
-            echo "PR #$EXISTING_PR already exists for sync branch. Updating with new commits."
-            gh pr edit $EXISTING_PR --title "$SYNC_TITLE" --body "$PR_BODY"
+            echo "✅ PR #$EXISTING_PR already exists for sync branch. Updating with new commits."
+            gh pr edit $EXISTING_PR --title "$SYNC_TITLE" --body "$PR_BODY" || {
+              echo "⚠️ Failed to update existing PR, but continuing..."
+            }
             echo "Updated existing PR #$EXISTING_PR with $TOTAL_COMMITS total commits"
           else
+            echo "=== Creating new PR ==="
+            echo "Base: ${{ env.TARGET_BRANCH }}"
+            echo "Head: $SYNC_BRANCH" 
+            echo "Title: $SYNC_TITLE"
+            
+            # Verify branch exists on remote
+            if ! git ls-remote --heads origin "$SYNC_BRANCH" | grep -q "$SYNC_BRANCH"; then
+              echo "❌ Sync branch $SYNC_BRANCH does not exist on remote"
+              exit 1
+            fi
+            
+            # Create PR with error handling
             NEW_PR=$(gh pr create \
               --base "${{ env.TARGET_BRANCH }}" \
               --head "$SYNC_BRANCH" \
               --title "$SYNC_TITLE" \
-              --body "$PR_BODY")
-            echo "Created new PR: $NEW_PR"
+              --body "$PR_BODY" 2>&1) || {
+              echo "❌ Failed to create PR:"
+              echo "$NEW_PR"
+              
+              # Additional debugging info
+              echo "=== Additional Debug Info ==="
+              echo "Available branches:"
+              git branch -a | grep -E "(next|sync-pr-.*-to-next)" || echo "No matching branches found"
+              echo "Remote branches:"
+              git ls-remote --heads origin | grep -E "(next|sync-pr-.*-to-next)" || echo "No matching remote branches"
+              echo "Commit comparison:"
+              git log --oneline "${{ env.TARGET_BRANCH }}..HEAD" | head -5 || echo "No commits to show"
+              
+              exit 1
+            }
+            echo "✅ Created new PR: $NEW_PR"
           fi
